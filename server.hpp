@@ -78,7 +78,7 @@ class Server : public Base
 		//_______from Cluster_______//
 		int									kqueue_fd; //kqueue per kernel event
 		struct kevent						event; // vedi reference up
-		struct kevent						triggered_events[N_EVENTS]; //????
+		//struct kevent						triggered_events[N_EVENTS]; //????
 		//_________________________//
 
 
@@ -92,7 +92,10 @@ class Server : public Base
 		std::vector<ConnectedClient *>		clients; // client connessi CONTROLLARE
 		unsigned short						backlog; //??? 
 
-		void init_config(std::string config_file);
+	//____dbalducc______//
+		void	init_config(std::string config_file); // vedere se usare direttamente costruttore
+		int		parse_config_file(int conf_fd);
+
 
 	public:
 		// getters

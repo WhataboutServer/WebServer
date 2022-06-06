@@ -13,6 +13,23 @@ default_server(default_server)
 	//TODO parse content and initialize server
 }
 
+void	init_config(std::string config_file){
+/* if aprire config_file ok
+		if passa a parse_config_file(fd) ok
+			return
+	else
+		exception
+			if aprire default conf ok
+				if passa a parse_config_file(fd) ok
+					return
+		exit(1)
+*/
+}
+
+int		parse_config_file(int conf_fd){
+	
+}
+
 // destructor
 Server::~Server()
 {
