@@ -1,15 +1,15 @@
 #include "server.hpp"
-
+/*
 // getters
 struct sockaddr_in const	&Server::getAddress() const { return server_addr; }
 unsigned short const		Server::getBacklog() const { return backlog; }
 int const					Server::getListeningFd() const { return socket->getFd(); }
 //int const					Server::getKqueueFd() const { return cluster.getKqueueFd(); }
-
+*/
 // constructor
 Server::Server(std::string config_file)//, std::string content):
 {
-	this->socket = nullptr;
+	// this->socket = nullptr;
 	if (config_file.empty())
 		parse_config_file(DEF_CONF);
 	else
@@ -52,19 +52,19 @@ int		Server::parse_config_file(std::string config_file){
 		int i = 0;
 		while (std::getline(file, line))
 		{
-			if (line.compare("server") >= 0)
+			if (line.compare("server") == 0)
 			{
 				// servers_conf.resize(i + 1);
 				while (std::getline(file, line))
 				{
 					std::stringstream sline(line);
-					if (line.compare("}") >= 0)
+					if (line.compare("}") == 0)
 						break;
 					sline >> std::ws;
 					std::string key;
 					while (std::getline(sline, key, ' '))
 					{
-						if (line.compare("client_body_size") >= 0)
+						if (key.compare("client_body_size") == 0)
 						{
 							std::string value;
 							sline >> std::ws;
@@ -74,7 +74,7 @@ int		Server::parse_config_file(std::string config_file){
 								tmp >> client_body_size;
 							}
 						}
-						if (line.compare("error_pages") >= 0)
+						if (key.compare("error_page") == 0)
 						{
 							std::string code_s;
 							sline >> std::ws;
@@ -96,17 +96,18 @@ int		Server::parse_config_file(std::string config_file){
 		}
 		file.close();
 	}
+	return 0;
 }
 
 // destructor
 Server::~Server()
 {
-	if (socket)
+	/*if (socket)
 		delete socket;
 	for (std::vector<ConnectedClient *>::iterator it = clients.begin(); it != clients.end(); ++it)
-		delete *it;
+		delete *it;*/
 }
-
+/*
 // start listening
 void Server::startListening()
 {
@@ -139,4 +140,17 @@ void Server::giveResponse(ConnectedClient &client)
 {
 	std::cout << client.getMessage() << std::endl;	//DEBUG
 	//TODO parse request - client.getMessage() - and create response
+}
+*/
+
+std::ostream& operator<<(std::ostream & out, const Server& m)
+{
+	out << "client_body_size: " << m.client_body_size << std::endl;
+	std::map<int, std::string>::const_iterator it = m.error_pages.begin();
+	while (it != m.error_pages.end())
+	{
+		out << "error_pages.begin(): " << it->first << " " << it->second << std::endl;
+		++it;
+	}	
+	return out;
 }

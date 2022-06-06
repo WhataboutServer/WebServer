@@ -2,14 +2,15 @@
 
 #include <string>
 #include <sstream>
+#include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 
-#include "cluster.hpp"
-#include "location.hpp"
-#include "base.hpp"
-#include "connected_client.hpp"
-#include "socket.hpp"
+//*#include "cluster.hpp"
+//#include "location.hpp"
+//#include "connected_client.hpp"
+//#include "socket.hpp"
 
 //______from Cluster_______//
 #include <sys/event.h>	//kqueue kevent
@@ -20,7 +21,7 @@
 
 #define BUFFER_SIZE BUFSIZ
 
-#define DEF_CONF "/conf/default.conf"
+#define DEF_CONF "conf/default.conf"
 #define N_EVENTS 1000
 #define BACKLOG_SIZE 128
 
@@ -72,7 +73,7 @@
     //  };
 //___________________________________//
 
-class Server : public Base
+class Server// : public Base
 {
 	private:
 		// attributes
@@ -85,17 +86,17 @@ class Server : public Base
 
 
 		std::vector<std::string>			names; // domini
-		struct sockaddr_in					server_addr; // definisce la arte del socket CONTROLLARE
+		// struct sockaddr_in					server_addr; // definisce la arte del socket CONTROLLARE
 		bool								default_server; //???
 		std::map<int, std::string>			error_pages; // mapppa per errori
 		size_t								client_body_size; // max len body
-		std::vector<Location>				locations; // vettore per path
+		// std::vector<Location>				locations; // vettore per path
 
-		std::vector<ConnectedClient *>		clients; // client connessi CONTROLLARE
+		// std::vector<ConnectedClient *>		clients; // client connessi CONTROLLARE
 		unsigned short						backlog; //??? 
 
 	//____dbalducc______//
-		Socket	*socket;
+		// Socket	*socket;
 		
 		void	init_config(std::string config_file); // vedere se usare direttamente costruttore
 		int		parse_config_file(std::string config_file);
@@ -103,7 +104,7 @@ class Server : public Base
 
 	public:
 		// getters
-		struct sockaddr_in const	&getAddress() const;
+		// struct sockaddr_in const	&getAddress() const;
 		unsigned short const		getBacklog() const;
 		int const					getListeningFd() const;
 		//int const					getKqueueFd() const;
@@ -121,7 +122,9 @@ class Server : public Base
 		void connectToClient();
 
 		// communicate with client
-		void getRequest(ConnectedClient &client);
-		void giveResponse(ConnectedClient &client);
+		// void getRequest(ConnectedClient &client);
+		// void giveResponse(ConnectedClient &client);
+		friend std::ostream& operator<<(std::ostream & out, const Server& m);
+
 
 };
