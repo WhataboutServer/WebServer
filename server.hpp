@@ -109,17 +109,10 @@ class Server : public Base
 		//int const					getKqueueFd() const;
 
 		// constructor
-		Server(bool default_server);
+		Server(std::string config_file);
 
 		// destructor
-		~Server()
-		{
-			for (std::vector<ConnectedClient *>::iterator it = clients.begin(); it != clients.end(); ++it)
-			{
-				(*it)->~ConnectedClient();
-				delete *it;
-			}
-		}
+		~Server();
 
 		// start listening
 		void startListening();
