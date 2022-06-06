@@ -51,22 +51,25 @@ int		Server::parse_config_file(std::string config_file){
 		{
 			if (line.compare("server") >= 0)
 			{
-				servers_conf.resize(i + 1);
+				// servers_conf.resize(i + 1);
 				while (std::getline(file, line))
 				{
 					std::stringstream sline(line);
 					if (line.compare("}") >= 0)
 						break;
-					sline >> ws;
+					sline >> std::ws;
 					std::string key;
 					while (std::getline(sline, key, ' '))
 					{
 						if (line.compare("client_body_size") >= 0)
 						{
 							std::string value;
-							sline >> ws;
+							sline >> std::ws;
 							if (std::getline(sline, value))
-								client_body_size = value;
+							{
+								std::stringstream tmp(value);
+								tmp >> client_body_size;
+							}
 						}
 					}
 				}

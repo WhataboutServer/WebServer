@@ -2,7 +2,7 @@
 
 #include <string>
 #include <sstream>
-// #include <ifstream>
+#include <fstream>
 #include <vector>
 
 #include "cluster.hpp"
@@ -98,7 +98,7 @@ class Server : public Base
 		Socket	*socket;
 		
 		void	init_config(std::string config_file); // vedere se usare direttamente costruttore
-		int		parse_config_file(int conf_fd);
+		int		parse_config_file(std::string config_file);
 
 
 	public:
