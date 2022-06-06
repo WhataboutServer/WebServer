@@ -10,6 +10,7 @@ int const					Server::getListeningFd() const { return socket->getFd(); }
 Server::Server(bool default_server)://, std::string content):
 default_server(default_server)
 {
+	this->socket = nullptr;
 	//TODO parse content and initialize server
 
 	/*
@@ -78,6 +79,8 @@ int		Server::parse_config_file(std::string config_file){
 // destructor
 Server::~Server()
 {
+	if (socket)
+		delete socket;
 	for (std::vector<ConnectedClient *>::iterator it = clients.begin(); it != clients.end(); ++it)
 	{
 		(*it)->~ConnectedClient();

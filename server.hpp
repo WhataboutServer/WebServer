@@ -95,6 +95,8 @@ class Server : public Base
 		unsigned short						backlog; //??? 
 
 	//____dbalducc______//
+		Socket	*socket;
+		
 		void	init_config(std::string config_file); // vedere se usare direttamente costruttore
 		int		parse_config_file(int conf_fd);
 
