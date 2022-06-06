@@ -27,7 +27,7 @@ default_server(default_server)
 	*/
 }
 
-void	init_config(std::string config_file){
+void	Server::init_config(std::string config_file){
 /* if aprire config_file ok
 		if passa a parse_config_file(fd) ok
 			return
@@ -40,7 +40,7 @@ void	init_config(std::string config_file){
 */
 }
 
-int		parse_config_file(std::string config_file){
+int		Server::parse_config_file(std::string config_file){
 	std::ifstream file(config_file);
 	if (file.is_open())
 	{
@@ -60,10 +60,13 @@ int		parse_config_file(std::string config_file){
 					std::string key;
 					while (std::getline(sline, key, ' '))
 					{
-						std::string value;
-						sline >> ws;
-						if (std::getline(sline, value))
-							// servers_conf[i].insert(pair<string, string>(key, value));
+						if (line.compare("client_body_size") >= 0)
+						{
+							std::string value;
+							sline >> ws;
+							if (std::getline(sline, value))
+								client_body_size = value;
+						}
 					}
 				}
 				i++;
