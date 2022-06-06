@@ -7,10 +7,13 @@ int const					Server::getListeningFd() const { return socket->getFd(); }
 //int const					Server::getKqueueFd() const { return cluster.getKqueueFd(); }
 
 // constructor
-Server::Server(bool default_server)://, std::string content):
-default_server(default_server)
+Server::Server(std::string config_file)//, std::string content):
 {
 	this->socket = nullptr;
+	if (config_file.empty())
+		parse_config_file(DEF_CONF);
+	else
+		parse_config_file(config_file);
 	//TODO parse content and initialize server
 
 	/*
@@ -92,6 +95,7 @@ int		Server::parse_config_file(std::string config_file){
 			}
 		}
 		file.close();
+	}
 }
 
 // destructor
@@ -100,10 +104,7 @@ Server::~Server()
 	if (socket)
 		delete socket;
 	for (std::vector<ConnectedClient *>::iterator it = clients.begin(); it != clients.end(); ++it)
-	{
-		(*it)->~ConnectedClient();
 		delete *it;
-	}
 }
 
 // start listening
