@@ -12,7 +12,9 @@
 //______from Cluster_______//
 #include <sys/event.h>	//kqueue kevent
 //_________________________//
-
+//______EXTRA______//
+#include <string>
+//_________________//
 
 #define BUFFER_SIZE BUFSIZ
 
@@ -20,41 +22,53 @@
 #define N_EVENTS 1000
 #define BACKLOG_SIZE 128
 
-class Cluster
-{
-	private:
-		// attributes
-		std::vector<Server>					servers;
-		int									kqueue_fd;
-		struct kevent						event;
-		struct kevent						triggered_events[N_EVENTS];
-		class ConfigError: public std::exception
-		{
-			const char *what(std::string str) const throw()
-			{
-				return (("WARNING\n" + str + " is not a valid configuration file. " + \
-				"The default configuration file \"default.conf\" is used instead").c_str());
-			}
-		};
-	public:
-		// constructor
-		Cluster(std::string config_file);
+// class Cluster
+// {
+// 	private:
+// 		// attributes
+// 		std::vector<Server>					servers;
+// 		int									kqueue_fd;
+// 		struct kevent						event;
+// 		struct kevent						triggered_events[N_EVENTS];
+// 		class ConfigError: public std::exception
+// 		{
+// 			const char *what(std::string str) const throw()
+// 			{
+// 				return (("WARNING\n" + str + " is not a valid configuration file. " + \
+// 				"The default configuration file \"default.conf\" is used instead").c_str());
+// 			}
+// 		};
+// 	public:
+// 		// constructor
+// 		Cluster(std::string config_file);
 
-		// destructor
-		~Cluster();
+// 		// destructor
+// 		~Cluster();
 
-		// getters
-		int const			getKqueueFd() const;
+// 		// getters
+// 		int const			getKqueueFd() const;
 
-		// run
-		void run();
+// 		// run
+// 		void run();
 
-	private:
-		// private methods
-		std::vector<Server>	&getServers();
-		void	parse_config_file(int conf_fd);
+// 	private:
+// 		// private methods
+// 		std::vector<Server>	&getServers();
+// 		void	parse_config_file(int conf_fd);
 
-};
+// };
+
+
+//__________KEVENT_REFERENCE__________//
+    //  struct kevent {
+	//      uintptr_t ident;	     /*	identifier for this event */
+	//      short     filter;	     /*	filter for event */
+	//      u_short   flags;	     /*	action flags for kqueue	*/
+	//      u_int     fflags;	     /*	filter flag value */
+	//      intptr_t  data;	     /*	filter data value */
+	//      void      *udata;	     /*	opaque user data identifier */
+    //  };
+//___________________________________//
 
 class Server : public Base
 {
@@ -62,20 +76,23 @@ class Server : public Base
 		// attributes
 		//Cluster	const						&cluster;
 		//_______from Cluster_______//
-		struct kevent						event;
-		struct kevent						triggered_events[N_EVENTS];
+		int									kqueue_fd; //kqueue per kernel event
+		struct kevent						event; // vedi reference up
+		struct kevent						triggered_events[N_EVENTS]; //????
 		//_________________________//
 
 
-		std::vector<std::string>			names;
-		struct sockaddr_in					server_addr;
-		bool								default_server;
-		std::map<int, std::string>			error_pages;
-		size_t								client_body_size;
-		std::vector<Location>				locations;
+		std::vector<std::string>			names; // domini
+		struct sockaddr_in					server_addr; // definisce la arte del socket CONTROLLARE
+		bool								default_server; //???
+		std::map<int, std::string>			error_pages; // mapppa per errori
+		size_t								client_body_size; // max len body
+		std::vector<Location>				locations; // vettore per path
 
-		std::vector<ConnectedClient *>		clients;
-		unsigned short						backlog;
+		std::vector<ConnectedClient *>		clients; // client connessi CONTROLLARE
+		unsigned short						backlog; //??? 
+
+		void init_config(std::string config_file);
 
 	public:
 		// getters
