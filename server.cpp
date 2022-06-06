@@ -4,11 +4,11 @@
 struct sockaddr_in const	&Server::getAddress() const { return server_addr; }
 unsigned short const		Server::getBacklog() const { return backlog; }
 int const					Server::getListeningFd() const { return socket->getFd(); }
-int const					Server::getKqueueFd() const { return cluster.getKqueueFd(); }
+//int const					Server::getKqueueFd() const { return cluster.getKqueueFd(); }
 
 // constructor
-Server::Server(Cluster const &cluster, bool default_server, unsigned short backlog, std::string content) :
-cluster(cluster), default_server(default_server), backlog(backlog)
+Server::Server(bool default_server)://, std::string content):
+default_server(default_server)
 {
 	//TODO parse content and initialize server
 }

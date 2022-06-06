@@ -1,5 +1,7 @@
 #include "cluster.hpp"
 
+//cluster di server
+
 Cluster::Cluster(std::string config_file)	//NOTE: if the config file is not valid, then default config file is used
 {
 	int conf_fd;
@@ -16,6 +18,12 @@ Cluster::Cluster(std::string config_file)	//NOTE: if the config file is not vali
 		}
 	}
 	parse_config_file(conf_fd);
+}
+
+int	Cluster::parse_config_file(int conf_fd)
+{
+	//TODO parsing config file e initialization of servers
+	
 }
 
 // destructor
@@ -72,8 +80,4 @@ void Cluster::run()
 	}
 
 	// parse confi_file
-	void	Cluster::parse_config_file(int conf_fd)
-	{
-		//TODO parsing config file e initialization of servers
-	}
 }
