@@ -71,6 +71,21 @@ int		Server::parse_config_file(std::string config_file){
 								tmp >> client_body_size;
 							}
 						}
+						if (line.compare("error_pages") >= 0)
+						{
+							std::string code_s;
+							sline >> std::ws;
+							if (std::getline(sline, code_s, ' '))
+							{
+								std::stringstream tmp(code_s);
+								int code;
+								tmp >> code;
+								std::string path;
+								sline >> std::ws;
+								if (std::getline(sline, path))
+									error_pages.insert(std::pair<int, std::string>(code, path));
+							}
+						}
 					}
 				}
 				i++;
