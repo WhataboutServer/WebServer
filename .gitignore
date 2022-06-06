@@ -1,3 +1,4 @@
 .vscode
+base.hpp
 *.o
 *.out
