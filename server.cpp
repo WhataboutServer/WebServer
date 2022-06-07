@@ -31,18 +31,14 @@ Server::Server(const std::string & config_file)//, std::string content):
 	*/
 }
 
-void	Server::init_config(const std::string & config_file)
+int	Server::check_config()
 {
-/* if aprire config_file ok
-		if passa a parse_config_file(fd) ok
-			return
-	else
-		exception
-			if aprire default conf ok
-				if passa a parse_config_file(fd) ok
-					return
-		exit(1)
-*/
+	if (this->port < 1 || this->port > 65535)
+		return 1;
+	if (this->names.empty())
+		this->names.push_back("server");
+	if (this->error_pages.empty())
+		this->error_pages.insert(std::pair<int, std::string>(404, "error_page/404.html")); //TODO vedere se eliminare
 }
 
 void Server::keyAssignation(const std::string & key, std::stringstream & sline)
@@ -118,9 +114,10 @@ void	Server::parse_config_file(const std::string & config_file)
 
 		if (key.compare("server") == 0)
 			on_server_block = true;
-		else if (key.compare("}") == 0)
+		else if (key.compare("}") == 0){
 			on_server_block = false;
-
+			check_config();
+		}
 		if (on_server_block)
 		{
 			parse_line.clear();
