@@ -18,7 +18,7 @@ private:
 	}							redirection;
 public:
 	// constructor
-	Location(std::string path, std::string content);
+	Location();
 
 	// destructor
 	~Location();
