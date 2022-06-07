@@ -7,10 +7,10 @@
 #include <vector>
 #include <map>
 
-//*#include "cluster.hpp"
-//#include "location.hpp"
-//#include "connected_client.hpp"
-//#include "socket.hpp"
+/* #include "cluster.hpp"
+#include "location.hpp"
+#include "connected_client.hpp"
+#include "socket.hpp" */
 
 //______from Cluster_______//
 #include <sys/event.h>	//kqueue kevent
@@ -91,16 +91,23 @@ class Server// : public Base
 		// bool								default_server; //???
 		std::map<int, std::string>			error_pages; // mapppa per errori
 		size_t								client_body_size; // max len body
+		struct ConfigError: public std::exception
+		{
+			std::string what(std::string str) const throw()
+			{
+				return ("WARNING\n" + str + " is not a valid configuration file.");
+			}
+		};
 		// std::vector<Location>				locations; // vettore per path
 
 		// std::vector<ConnectedClient *>		clients; // client connessi CONTROLLARE
-		// unsigned short						backlog; //??? 
+		unsigned short						backlog; //??? 
 
 	//____dbalducc______//
 		// Socket	*socket;
 		
-		int		check_config(void); // vedere se usare direttamente costruttore
-		void	parse_config_file(const std::string & config_file, int check);
+		void		check_config(void); // vedere se usare direttamente costruttore
+		void	parse_config_file(const std::string & config_file);
 		void	keyAssignation(const std::string & key, std::stringstream & sline);
 
 

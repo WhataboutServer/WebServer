@@ -16,30 +16,29 @@ Server::Server(const std::string & config_file)//, std::string content):
 		parse_config_file(config_file);
 	//TODO parse content and initialize server
 
-	/*
-	int sockfd;
+	
+/* 	int sockfd;
 	struct sockaddr_in my_addr;
 
 	sockfd = socket(PF_INET, SOCK_STREAM, 0);
 
 	my_addr.sin_family = AF_INET;
-	my_addr.sin_port = htons(MYPORT);     // short, network byte order
+	my_addr.sin_port = htons(this->port);     // short, network byte order
 	my_addr.sin_addr.s_addr = inet_addr("10.12.110.57");
 	memset(my_addr.sin_zero, '\0', sizeof my_addr.sin_zero);
 
-	bind(sockfd, (struct sockaddr *)&my_addr, sizeof my_addr);
-	*/
+	bind(sockfd, (struct sockaddr *)&my_addr, sizeof my_addr); */
+	
 }
 
-int	Server::check_config()
+void	Server::check_config()
 {
 	if (this->port < 1 || this->port > 65535)
-		return 1;
+		throw ConfigError();
 	if (this->names.empty())
 		this->names.push_back("server");
 	if (this->error_pages.empty())
 		this->error_pages.insert(std::pair<int, std::string>(404, "error_page/404.html")); //TODO vedere se eliminare
-	return 0;
 }
 
 void Server::keyAssignation(const std::string & key, std::stringstream & sline)
@@ -94,14 +93,19 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 	return ;
 }
 
-void	Server::parse_config_file(const std::string & config_file, int check=0)
+void	Server::parse_config_file(const std::string & config_file = DEF_CONF)
 {
+	int ck = 0;
 	std::ifstream file(config_file);
-	if (!file.is_open())
+	if (!config_file.compare(DEF_CONF) && !file.is_open())
+		exit(1);
+	else if (config_file.compare(DEF_CONF) && !file.is_open())
 	{
+		file.close();
+		ck = 1;
 		file.open(DEF_CONF);
 		if (!file.is_open())
-			return ;			// throw ;
+			exit(1);
 	}
 	std::string line_red;
 	std::string key;
@@ -112,14 +116,23 @@ void	Server::parse_config_file(const std::string & config_file, int check=0)
 		parse_line.clear();
 		parse_line.str(line_red);
 		std::getline(parse_line, key, ' ');
-
 		if (key.compare("server") == 0)
 			on_server_block = true;
 		else if (key.compare("}") == 0){
 			on_server_block = false;
-			check = check_config();
-			if (check)
-				parse_config_file(config_file, check);
+			try{
+				check_config();
+			}
+			catch (ConfigError & e){
+				if (config_file.compare(DEF_CONF) && !ck)
+				{
+					std::cout << e.what(config_file) << std::endl;
+					std::cout << "The default configuration file \"default.conf\" is used instead" << std::endl;
+					this->parse_config_file(DEF_CONF);
+				}
+				else
+					exit(1);
+			}
 		}
 		if (on_server_block)
 		{
