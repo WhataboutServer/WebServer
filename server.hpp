@@ -6,11 +6,11 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <resolv.h> //https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=241386 for sockaddr_in init in line 88 hpp
 
 //*#include "cluster.hpp"
 #include "location.hpp"
 //#include "connected_client.hpp"
-//#include "socket.hpp"
 
 //______from Cluster_______//
 #include <sys/event.h>	//kqueue kevent
@@ -72,7 +72,6 @@
 	//      void      *udata;	     /*	opaque user data identifier */
     //  };
 //___________________________________//
-
 class Server// : public Base
 {
 	private:
@@ -86,8 +85,7 @@ class Server// : public Base
 
 
 		std::vector<std::string>			names; // domini
-		// struct sockaddr_in					server_addr; // definisce la arte del socket CONTROLLARE
-		int									port;
+		struct sockaddr_in					server_addr; // definisce la arte del socket CONTROLLARE
 		// bool								default_server; //???
 		std::map<int, std::string>			error_pages; // mapppa per errori
 		size_t								client_body_size; // max len body
@@ -116,7 +114,7 @@ class Server// : public Base
 
 	public:
 		// getters
-		// struct sockaddr_in const	&getAddress() const;
+		struct sockaddr_in const	&getAddress() const;
 		// unsigned short const		getBacklog() const;
 		// int const					getListeningFd() const;
 		//int const					getKqueueFd() const;
