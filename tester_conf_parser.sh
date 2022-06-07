@@ -1,0 +1,1 @@
+c++ conf_parser_tester.cpp server.cpp && ./a.out | cat -e && rm a.out
