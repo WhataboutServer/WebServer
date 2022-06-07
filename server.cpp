@@ -1,11 +1,11 @@
-#include "server.hpp"
-/*
+
+#include "socket.hpp"
 // getters
 struct sockaddr_in const	&Server::getAddress() const { return server_addr; }
-unsigned short const		Server::getBacklog() const { return backlog; }
-int const					Server::getListeningFd() const { return socket->getFd(); }
+// unsigned short const		Server::getBacklog() const { return backlog; }
+// int const					Server::getListeningFd() const { return socket->getFd(); }
 //int const					Server::getKqueueFd() const { return cluster.getKqueueFd(); }
-*/
+
 // constructor
 Server::Server(const std::string & config_file)//, std::string content):
 {
@@ -33,8 +33,8 @@ Server::Server(const std::string & config_file)//, std::string content):
 
 void	Server::check_config()
 {
-	if (this->port < 1 || this->port > 65535)
-		throw ConfigError();
+	// if (this->port < 1 || this->port > 65535)
+		// throw ConfigError();
 	if (this->names.empty())
 		this->names.push_back("server");
 	if (this->error_pages.empty())
@@ -56,11 +56,13 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 	else if (key.compare("listen") == 0)
 	{
 		std::string value;
+		int	port;
 		sline >> std::ws;
 		if (std::getline(sline, value))
 		{
 			std::stringstream tmp(value);
 			tmp >> port;
+			this->server_addr.sin_port = htons(port);
 		}
 	}
 	else if (key.compare("error_page") == 0)
@@ -203,7 +205,8 @@ std::ostream& operator<<(std::ostream & out, const Server& m)
 
 	out << "\tclient_body_size: " << m.client_body_size << std::endl;
 
-	out << "\tport: " << m.port << std::endl;
+	out << m.server_addr.sin_port << std::endl;
+	// out << "\tport: " << m.port << std::endl;
 
 	out << "\tnames:";
 	std::vector<std::string>::const_iterator it_names = m.names.begin();
