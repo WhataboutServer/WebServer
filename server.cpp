@@ -93,6 +93,7 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 			names.push_back(name);
 		}
 	}
+	else if (key.compare("location") == 0) {}
 	return ;
 }
 
@@ -106,22 +107,27 @@ void	Server::parse_config_file(const std::string & config_file)
 			return ;			// throw ;
 	}
 	std::string line_red;
+	std::string key;
+	std::stringstream parse_line;
+	bool on_server_block;
 	while (std::getline(file, line_red))
 	{
-		if (line_red.compare("server") >= 0)
+		parse_line.clear();
+		parse_line.str(line_red);
+		std::getline(parse_line, key, ' ');
+
+		if (key.compare("server") == 0)
+			on_server_block = true;
+		else if (key.compare("}") == 0)
+			on_server_block = false;
+
+		if (on_server_block)
 		{
-			// servers_conf.resize(i + 1);
-			while (std::getline(file, line_red))
-			{
-// std::cout << " ---parsed line: " << line << std::endl;
-				std::stringstream parse_line(line_red);
-				if (line_red.compare("}") == 0)
-					break;
-				parse_line >> std::ws;
-				std::string key;
-				while (std::getline(parse_line, key, ' '))
-					keyAssignation(key, parse_line);
-			}
+			parse_line.clear();
+			parse_line.str(line_red);
+			parse_line >> std::ws;
+			if (std::getline(parse_line, key, ' '))
+				keyAssignation(key, parse_line);
 		}
 	}
 	file.close();
@@ -179,11 +185,11 @@ std::ostream& operator<<(std::ostream & out, const Server& m)
 
 	out << "\tport: " << m.port << std::endl;
 
-	out << "\tnames: ";
+	out << "\tnames:";
 	std::vector<std::string>::const_iterator it_names = m.names.begin();
 	while (it_names != m.names.end())
 	{
-		out << '[' << *it_names << "]; ";
+		out << " [" << *it_names << "];";
 		++it_names;
 	}	
 	out << std::endl;
