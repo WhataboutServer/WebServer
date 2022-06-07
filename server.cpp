@@ -89,16 +89,10 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 			names.push_back(name);
 		}
 	}
-	else if (key.compare("location") == 0)
-	{
-		Location nw;
-		nw.setValues(sline);
-		locations.push_back(nw);
-	}
 	return ;
 }
 
-void	Server::parse_config_file(const std::string & config_file = DEF_CONF)
+void	Server::parse_config_file(const std::string & config_file)
 {
 	int ck = 0;
 	std::ifstream file(config_file);
@@ -145,7 +139,15 @@ void	Server::parse_config_file(const std::string & config_file = DEF_CONF)
 			parse_line.str(line_red);
 			parse_line >> std::ws;
 			if (std::getline(parse_line, key, ' '))
+			{
+				if (key.compare("location") == 0)
+				{
+					Location nw;
+					nw.setValues(file);
+					locations.push_back(nw);
+				}
 				keyAssignation(key, parse_line);
+			}
 		}
 	}
 	file.close();
