@@ -8,7 +8,7 @@
 #include <map>
 
 //*#include "cluster.hpp"
-//#include "location.hpp"
+#include "location.hpp"
 //#include "connected_client.hpp"
 //#include "socket.hpp"
 
@@ -91,7 +91,7 @@ class Server// : public Base
 		// bool								default_server; //???
 		std::map<int, std::string>			error_pages; // mapppa per errori
 		size_t								client_body_size; // max len body
-		// std::vector<Location>				locations; // vettore per path
+		std::vector<Location>				locations; // vettore per path
 
 		// std::vector<ConnectedClient *>		clients; // client connessi CONTROLLARE
 		// unsigned short						backlog; //??? 
@@ -100,7 +100,7 @@ class Server// : public Base
 		// Socket	*socket;
 		
 		int		check_config(void); // vedere se usare direttamente costruttore
-		void	parse_config_file(const std::string & config_file, int check);
+		void	parse_config_file(const std::string & config_file/*, int check = 0*/);
 		void	keyAssignation(const std::string & key, std::stringstream & sline);
 
 

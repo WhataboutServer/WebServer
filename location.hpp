@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <map>
 #include <vector>
@@ -26,13 +28,8 @@ public:
 	// getters
 	std::string const	&getPath() const;
 	std::string const	&getRoot() const;
-	bool				isMethodAllowed(std::string method) const;
+	bool				isMethodAllowed(const std::string & method) const;
 	Redirection const	&getRedirection() const;
 
-private:
-	// setters
-	void	addAllowedMethod(std::string method);
-
-	// methods
-
+	void setValues(std::stringstream & sline);
 };

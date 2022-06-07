@@ -90,11 +90,16 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 			names.push_back(name);
 		}
 	}
-	else if (key.compare("location") == 0) {}
+	else if (key.compare("location") == 0)
+	{
+		Location nw;
+		nw.setValues(sline);
+		locations.push_back(nw);
+	}
 	return ;
 }
 
-void	Server::parse_config_file(const std::string & config_file, int check=0)
+void	Server::parse_config_file(const std::string & config_file/*, int check = 0*/)
 {
 	std::ifstream file(config_file);
 	if (!file.is_open())
@@ -117,9 +122,9 @@ void	Server::parse_config_file(const std::string & config_file, int check=0)
 			on_server_block = true;
 		else if (key.compare("}") == 0){
 			on_server_block = false;
-			check = check_config();
-			if (check)
-				parse_config_file(config_file, check);
+			// check = check_config();
+			// if (check)
+			// 	parse_config_file(config_file, check);
 		}
 		if (on_server_block)
 		{
@@ -191,6 +196,15 @@ std::ostream& operator<<(std::ostream & out, const Server& m)
 	{
 		out << " [" << *it_names << "];";
 		++it_names;
+	}	
+	out << std::endl;
+
+	out << "\tlocation:";
+	std::vector<Location>::const_iterator it_locations = m.locations.begin();
+	while (it_locations != m.locations.end())
+	{
+		out << " [" << it_locations->getPath() << "];";
+		++it_locations;
 	}	
 	out << std::endl;
 
