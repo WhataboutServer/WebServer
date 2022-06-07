@@ -100,7 +100,7 @@ class Server// : public Base
 		// Socket	*socket;
 		
 		void	init_config(const std::string & config_file); // vedere se usare direttamente costruttore
-		int		parse_config_file(const std::string & config_file);
+		void	parse_config_file(const std::string & config_file);
 		void	keyAssignation(const std::string & key, std::stringstream & sline);
 
 
@@ -112,7 +112,7 @@ class Server// : public Base
 		//int const					getKqueueFd() const;
 
 		// constructor
-		Server(std::string config_file);
+		Server(const std::string & config_file);
 
 		// destructor
 		~Server();

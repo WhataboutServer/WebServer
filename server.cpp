@@ -7,7 +7,7 @@ int const					Server::getListeningFd() const { return socket->getFd(); }
 //int const					Server::getKqueueFd() const { return cluster.getKqueueFd(); }
 */
 // constructor
-Server::Server(std::string config_file)//, std::string content):
+Server::Server(const std::string & config_file)//, std::string content):
 {
 	// this->socket = nullptr;
 	if (config_file.empty())
@@ -47,9 +47,7 @@ void	Server::init_config(const std::string & config_file)
 
 void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 {
-	if (key.compare("#") == 0)
-		return ;
-	else if (key.compare("client_body_size") == 0)
+	if (key.compare("client_body_size") == 0)
 	{
 		std::string value;
 		sline >> std::ws;
@@ -95,37 +93,38 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 			names.push_back(name);
 		}
 	}
+	return ;
 }
 
-int		Server::parse_config_file(const std::string & config_file)
+void	Server::parse_config_file(const std::string & config_file)
 {
 	std::ifstream file(config_file);
-	if (file.is_open())
+	if (!file.is_open())
 	{
-		std::string line;
-		int i = 0;
-		while (std::getline(file, line))
+		file.open(DEF_CONF);
+		if (!file.is_open())
+			return ;			// throw ;
+	}
+	std::string line_red;
+	while (std::getline(file, line_red))
+	{
+		if (line_red.compare("server") >= 0)
 		{
-			if (line.compare("server") >= 0)
+			// servers_conf.resize(i + 1);
+			while (std::getline(file, line_red))
 			{
-				// servers_conf.resize(i + 1);
-				while (std::getline(file, line))
-				{
 // std::cout << " ---parsed line: " << line << std::endl;
-					std::stringstream sline(line);
-					if (line.compare("}") == 0)
-						break;
-					sline >> std::ws;
-					std::string key;
-					while (std::getline(sline, key, ' '))
-						keyAssignation(key, sline);
-				}
-				i++;
+				std::stringstream parse_line(line_red);
+				if (line_red.compare("}") == 0)
+					break;
+				parse_line >> std::ws;
+				std::string key;
+				while (std::getline(parse_line, key, ' '))
+					keyAssignation(key, parse_line);
 			}
 		}
-		file.close();
 	}
-	return 0;
+	file.close();
 }
 
 // destructor
