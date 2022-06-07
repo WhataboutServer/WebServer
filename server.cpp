@@ -120,7 +120,6 @@ void	Server::parse_config_file(const std::string & config_file, int check=0)
 			check = check_config();
 			if (check)
 				parse_config_file(config_file, check);
-
 		}
 		if (on_server_block)
 		{
