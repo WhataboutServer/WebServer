@@ -39,6 +39,7 @@ int	Server::check_config()
 		this->names.push_back("server");
 	if (this->error_pages.empty())
 		this->error_pages.insert(std::pair<int, std::string>(404, "error_page/404.html")); //TODO vedere se eliminare
+	return 0;
 }
 
 void Server::keyAssignation(const std::string & key, std::stringstream & sline)
@@ -93,7 +94,7 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 	return ;
 }
 
-void	Server::parse_config_file(const std::string & config_file)
+void	Server::parse_config_file(const std::string & config_file, int check=0)
 {
 	std::ifstream file(config_file);
 	if (!file.is_open())
@@ -116,7 +117,10 @@ void	Server::parse_config_file(const std::string & config_file)
 			on_server_block = true;
 		else if (key.compare("}") == 0){
 			on_server_block = false;
-			check_config();
+			check = check_config();
+			if (check)
+				parse_config_file(config_file, check);
+
 		}
 		if (on_server_block)
 		{

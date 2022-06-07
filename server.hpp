@@ -100,7 +100,7 @@ class Server// : public Base
 		// Socket	*socket;
 		
 		int	check_config(void); // vedere se usare direttamente costruttore
-		void	parse_config_file(const std::string & config_file);
+		void	parse_config_file(const std::string & config_file, int check);
 		void	keyAssignation(const std::string & key, std::stringstream & sline);
 
 
