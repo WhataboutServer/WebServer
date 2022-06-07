@@ -10,7 +10,7 @@
 #include <exception>
 #include "server.hpp"
 
-#define DEF_CONF "/conf/default.conf"
+//#define DEF_CONF "/conf/default.conf"
 #define N_EVENTS 1000
 #define BACKLOG_SIZE 128
 
