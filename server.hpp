@@ -79,34 +79,36 @@ class Server// : public Base
 		// attributes
 		//Cluster	const						&cluster;
 		//_______from Cluster_______//
-		int									kqueue_fd; //kqueue per kernel event
-		struct kevent						event; // vedi reference up
+		// int									kqueue_fd; //kqueue per kernel event
+		// struct kevent						event; // vedi reference up
 		//struct kevent						triggered_events[N_EVENTS]; //????
 		//_________________________//
 
 
 		std::vector<std::string>			names; // domini
 		// struct sockaddr_in					server_addr; // definisce la arte del socket CONTROLLARE
-		bool								default_server; //???
+		int									port;
+		// bool								default_server; //???
 		std::map<int, std::string>			error_pages; // mapppa per errori
 		size_t								client_body_size; // max len body
 		// std::vector<Location>				locations; // vettore per path
 
 		// std::vector<ConnectedClient *>		clients; // client connessi CONTROLLARE
-		unsigned short						backlog; //??? 
+		// unsigned short						backlog; //??? 
 
 	//____dbalducc______//
 		// Socket	*socket;
 		
-		void	init_config(std::string config_file); // vedere se usare direttamente costruttore
-		int		parse_config_file(std::string config_file);
+		void	init_config(const std::string & config_file); // vedere se usare direttamente costruttore
+		int		parse_config_file(const std::string & config_file);
+		void	keyAssignation(const std::string & key, std::stringstream & sline);
 
 
 	public:
 		// getters
 		// struct sockaddr_in const	&getAddress() const;
-		unsigned short const		getBacklog() const;
-		int const					getListeningFd() const;
+		// unsigned short const		getBacklog() const;
+		// int const					getListeningFd() const;
 		//int const					getKqueueFd() const;
 
 		// constructor
@@ -116,15 +118,13 @@ class Server// : public Base
 		~Server();
 
 		// start listening
-		void startListening();
+		// void startListening();
 
 		// connect to client
-		void connectToClient();
+		// void connectToClient();
 
 		// communicate with client
 		// void getRequest(ConnectedClient &client);
 		// void giveResponse(ConnectedClient &client);
 		friend std::ostream& operator<<(std::ostream & out, const Server& m);
-
-
 };

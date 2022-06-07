@@ -31,7 +31,8 @@ Server::Server(std::string config_file)//, std::string content):
 	*/
 }
 
-void	Server::init_config(std::string config_file){
+void	Server::init_config(const std::string & config_file)
+{
 /* if aprire config_file ok
 		if passa a parse_config_file(fd) ok
 			return
@@ -44,7 +45,60 @@ void	Server::init_config(std::string config_file){
 */
 }
 
-int		Server::parse_config_file(std::string config_file){
+void Server::keyAssignation(const std::string & key, std::stringstream & sline)
+{
+	if (key.compare("#") == 0)
+		return ;
+	else if (key.compare("client_body_size") == 0)
+	{
+		std::string value;
+		sline >> std::ws;
+		if (std::getline(sline, value))
+		{
+			std::stringstream tmp(value);
+			tmp >> client_body_size;
+		}
+	}
+	else if (key.compare("listen") == 0)
+	{
+		std::string value;
+		sline >> std::ws;
+		if (std::getline(sline, value))
+		{
+			std::stringstream tmp(value);
+			tmp >> port;
+		}
+	}
+	else if (key.compare("error_page") == 0)
+	{
+		std::string code_s;
+		sline >> std::ws;
+		if (std::getline(sline, code_s, ' '))
+		{
+			std::stringstream tmp(code_s);
+			int code;
+			tmp >> code;
+			std::string path;
+			sline >> std::ws;
+			if (std::getline(sline, path))
+				error_pages.insert(std::pair<int, std::string>(code, path));
+		}
+	}
+	else if (key.compare("server_name") == 0)
+	{
+		std::string name;
+		sline >> std::ws;
+		while (std::getline(sline, name, ' '))
+		{
+			if (name.compare("#") == 0)
+				return ;
+			names.push_back(name);
+		}
+	}
+}
+
+int		Server::parse_config_file(const std::string & config_file)
+{
 	std::ifstream file(config_file);
 	if (file.is_open())
 	{
@@ -52,45 +106,19 @@ int		Server::parse_config_file(std::string config_file){
 		int i = 0;
 		while (std::getline(file, line))
 		{
-			if (line.compare("server") == 0)
+			if (line.compare("server") >= 0)
 			{
 				// servers_conf.resize(i + 1);
 				while (std::getline(file, line))
 				{
+// std::cout << " ---parsed line: " << line << std::endl;
 					std::stringstream sline(line);
 					if (line.compare("}") == 0)
 						break;
 					sline >> std::ws;
 					std::string key;
 					while (std::getline(sline, key, ' '))
-					{
-						// TODO: funzione di storing
-						if (key.compare("client_body_size") == 0)
-						{
-							std::string value;
-							sline >> std::ws;
-							if (std::getline(sline, value))
-							{
-								std::stringstream tmp(value);
-								tmp >> client_body_size;
-							}
-						}
-						if (key.compare("error_page") == 0)
-						{
-							std::string code_s;
-							sline >> std::ws;
-							if (std::getline(sline, code_s, ' '))
-							{
-								std::stringstream tmp(code_s);
-								int code;
-								tmp >> code;
-								std::string path;
-								sline >> std::ws;
-								if (std::getline(sline, path))
-									error_pages.insert(std::pair<int, std::string>(code, path));
-							}
-						}
-					}
+						keyAssignation(key, sline);
 				}
 				i++;
 			}
@@ -146,12 +174,26 @@ void Server::giveResponse(ConnectedClient &client)
 
 std::ostream& operator<<(std::ostream & out, const Server& m)
 {
-	out << "client_body_size: " << m.client_body_size << std::endl;
-	std::map<int, std::string>::const_iterator it = m.error_pages.begin();
-	while (it != m.error_pages.end())
+	out << "Server parsed parameters" << std::endl;
+
+	out << "\tclient_body_size: " << m.client_body_size << std::endl;
+
+	out << "\tport: " << m.port << std::endl;
+
+	out << "\tnames: ";
+	std::vector<std::string>::const_iterator it_names = m.names.begin();
+	while (it_names != m.names.end())
 	{
-		out << "error_pages.begin(): " << it->first << " " << it->second << std::endl;
-		++it;
+		out << '[' << *it_names << "]; ";
+		++it_names;
+	}	
+	out << std::endl;
+
+	std::map<int, std::string>::const_iterator it_err = m.error_pages.begin();
+	while (it_err != m.error_pages.end())
+	{
+		out << "\terror_page: " << it_err->first << " " << it_err->second << std::endl;
+		++it_err;
 	}	
 	return out;
 }
