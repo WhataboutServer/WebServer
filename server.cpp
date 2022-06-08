@@ -61,16 +61,30 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 		if (std::getline(sline, value))
 		{
 			std::stringstream tmp(value);
-			if (std::getline(tmp, value, ':'))
+			if (value.find(':') != std::string::npos)
 			{
+				std::getline(tmp, value, ':');
 				server_addr.sin_addr.s_addr = inet_addr(value.c_str());
 				if (std::getline(tmp, value))
 				{
 					tmp.clear();
 					tmp.str(value);
 					tmp >> port;
-					this->server_addr.sin_port = htons(port);
+					server_addr.sin_port = htons(port);
 				}
+			}
+			else if (value.find_first_not_of("0123456789") != std::string::npos)
+			{
+				server_addr.sin_addr.s_addr = inet_addr(value.c_str());
+				server_addr.sin_port = htons(8080);
+			}
+			else
+			{
+				server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+				tmp.clear();
+				tmp.str(value);
+				tmp >> port;
+				server_addr.sin_port = htons(port);
 			}
 		}
 	}
