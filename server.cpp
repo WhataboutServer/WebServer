@@ -61,8 +61,17 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 		if (std::getline(sline, value))
 		{
 			std::stringstream tmp(value);
-			tmp >> port;
-			this->server_addr.sin_port = htons(port);
+			if (std::getline(tmp, value, ':'))
+			{
+				server_addr.sin_addr.s_addr = inet_addr(value.c_str());
+				if (std::getline(tmp, value))
+				{
+					tmp.clear();
+					tmp.str(value);
+					tmp >> port;
+					this->server_addr.sin_port = htons(port);
+				}
+			}
 		}
 	}
 	else if (key.compare("error_page") == 0)
@@ -205,7 +214,8 @@ std::ostream& operator<<(std::ostream & out, const Server& m)
 
 	out << "\tclient_body_size: " << m.client_body_size << std::endl;
 
-	out << m.server_addr.sin_port << std::endl;
+	out << "\taddres: " << inet_ntoa(m.server_addr.sin_addr) << std::endl;
+	out << "\tport: " << ntohs(m.server_addr.sin_port) << std::endl;
 	// out << "\tport: " << m.port << std::endl;
 
 	out << "\tnames:";
