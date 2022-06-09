@@ -1,0 +1,1 @@
+clang++ main.cpp ../../Response.cpp ../../Request.cpp && ./a.out | cat -e && rm a.out
