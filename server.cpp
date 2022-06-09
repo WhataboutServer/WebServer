@@ -43,9 +43,9 @@ void	Server::check_config()
 
 void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 {
-	if (key.compare("client_body_size") == 0)
+	if (key == "client_body_size")
 		sline >> client_body_size;
-	else if (key.compare("listen") == 0)
+	else if (key == "listen")
 	{
 		std::string value;
 		int	port;
@@ -79,7 +79,7 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 			server_addr.sin_port = htons(80);
 		}
 	}
-	else if (key.compare("error_page") == 0)
+	else if (key == "error_page")
 	{
 		size_t pos;
 		int code;
@@ -93,7 +93,7 @@ void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 				error_pages.insert(std::pair<int, std::string>(code, path));
 		}
 	}
-	else if (key.compare("server_name") == 0)
+	else if (key == "server_name")
 	{
 		std::string name;
 		size_t pos;
@@ -118,9 +118,10 @@ void	Server::parse_config_file(const std::string & config_file)
 {
 	int ck = 0;
 	std::ifstream file(config_file);
-	if (!config_file.compare(DEF_CONF) && !file.is_open())
+
+	if (!config_file == DEF_CONF && !file.is_open())
 		exit(1);
-	else if (config_file.compare(DEF_CONF) && !file.is_open())
+	else if (config_file == DEF_CONF && !file.is_open())
 	{
 		file.close();
 		ck = 1;
@@ -153,7 +154,7 @@ void	Server::parse_config_file(const std::string & config_file)
 			}
 			catch (ConfigError & e)
 			{
-				if (config_file.compare(DEF_CONF) && !ck)
+				if (config_file == DEF_CONF && !ck)
 				{
 					std::cout << e.what(config_file) << std::endl;
 					std::cout << "The default configuration file \"default.conf\" is used instead" << std::endl;
