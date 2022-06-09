@@ -121,9 +121,9 @@ void	Server::parse_config_file(const std::string & config_file)
 	int ck = 0;
 	std::ifstream file(config_file);
 
-	if (!config_file == DEF_CONF && !file.is_open())
+	if (config_file == DEF_CONF && !file.is_open())
 		exit(1);
-	else if (config_file == DEF_CONF && !file.is_open())
+	else if (!(config_file == DEF_CONF) && !file.is_open())
 	{
 		file.close();
 		ck = 1;
