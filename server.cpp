@@ -44,7 +44,9 @@ void	Server::check_config()
 void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 {
 	if (key == "client_body_size")
+	{
 		sline >> client_body_size;
+	}
 	else if (key == "listen")
 	{
 		std::string value;
