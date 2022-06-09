@@ -7,7 +7,6 @@
 
 #include "server.hpp"
 
-
 class Socket
 {
 private:
@@ -27,13 +26,14 @@ public:
 			exit(1);
 		}
 		if (setsockopt(fd, SOL_SOCKET, IPV6_V6ONLY, (char *)&opt, sizeof(opt)) < 0){ //remove ipv6 only
-			perror("ERROR\nSocket: can't set option");
+			perror("ERROR\nSocket: can't set option IPV6_V6ONLY");
 		}
-		opt += 1;
-		//set master socket to allow multiple connections,
+
+		opt++;
+		//set master socket to allow multiple connections , 
     	//this is just a good habit, it will work without this
 		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0){ //remove ipv6 only
-			perror("ERROR\nSocket: can't set option");
+			perror("ERROR\nSocket: can't set option SO_REUSEADDR");
 		}
 		if (bind(fd, (struct sockaddr *)&server.getAddress(), sizeof(server.getAddress())) < 0)
 		{
