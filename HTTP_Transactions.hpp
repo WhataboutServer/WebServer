@@ -28,14 +28,15 @@ class HTTP_Request
 		{
 			stringstream file(raw_request);
 			string line;
-			getline(file, line);
+			getline(file, line, '\r');
 
 			// getting first line: method path version
 			stringstream firts_line(line);
-			string intermediate;
-			getline(firts_line, method, ' ');
-			getline(firts_line, path, ' ');
-			getline(firts_line, version);
+			// string intermediate;
+			// getline(firts_line, method, ' ');
+			// getline(firts_line, path, ' ');
+			// getline(firts_line, version);
+			firts_line >> method >> path >> version;
 
 			// get all the headers
 			// P.S. the last line could be a message
@@ -83,6 +84,19 @@ ostream& operator<<(ostream & out, const HTTP_Request& m)
 	out << "\tMessage: " << m.message << endl;
 	return out;
 }
+
+/*
+TODO
+Request:
+	- header:	host (mandatory)
+				from
+				user-agent
+Response:
+	- header:	Server
+				date
+				Last-Modified
+
+*/
 
 class HTTP_Response
 {

@@ -44,74 +44,71 @@ void	Server::check_config()
 void Server::keyAssignation(const std::string & key, std::stringstream & sline)
 {
 	if (key.compare("client_body_size") == 0)
-	{
-		std::string value;
-		sline >> std::ws;
-		if (std::getline(sline, value))
-		{
-			std::stringstream tmp(value);
-			tmp >> client_body_size;
-		}
-	}
+		sline >> client_body_size;
 	else if (key.compare("listen") == 0)
 	{
 		std::string value;
 		int	port;
-		sline >> std::ws;
-		if (std::getline(sline, value))
+		sline >> value;
+		std::stringstream tmp(value);
+		if (value.find(':') != std::string::npos)
 		{
-			std::stringstream tmp(value);
-			if (value.find(':') != std::string::npos)
-			{
-				std::getline(tmp, value, ':');
-				server_addr.sin_addr.s_addr = inet_addr(value.c_str());
-				if (std::getline(tmp, value))
-				{
-					tmp.clear();
-					tmp.str(value);
-					tmp >> port;
-					server_addr.sin_port = htons(port);
-				}
-			}
-			else if (value.find_first_not_of("0123456789") != std::string::npos)
-			{
-				server_addr.sin_addr.s_addr = inet_addr(value.c_str());
-				server_addr.sin_port = htons(8080);
-			}
+			std::getline(tmp, value, ':');
+			server_addr.sin_addr.s_addr = inet_addr(value.c_str());
+			tmp >> port;
+			server_addr.sin_port = htons(port);
+		}
+		else if (value.find_first_not_of("0123456789;") != std::string::npos)
+		{
+			size_t pos;
+			if ((pos = value.find(';')) != std::string::npos)
+				server_addr.sin_addr.s_addr = inet_addr(value.substr(0, pos).c_str());
 			else
-			{
-				server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
-				tmp.clear();
-				tmp.str(value);
-				tmp >> port;
-				server_addr.sin_port = htons(port);
-			}
+				server_addr.sin_addr.s_addr = inet_addr(value.c_str());
+			server_addr.sin_port = htons(80);
+		}
+		else if (!value.empty())
+		{
+			server_addr.sin_addr.s_addr = INADDR_ANY;
+			tmp >> port;
+			server_addr.sin_port = htons(port);
+		}
+		else
+		{
+			server_addr.sin_addr.s_addr = INADDR_ANY;
+			server_addr.sin_port = htons(80);
 		}
 	}
 	else if (key.compare("error_page") == 0)
 	{
-		std::string code_s;
-		sline >> std::ws;
-		if (std::getline(sline, code_s, ' '))
+		size_t pos;
+		int code;
+		std::string path;
+		sline >> code >> path;
+		if (!path.empty())
 		{
-			std::stringstream tmp(code_s);
-			int code;
-			tmp >> code;
-			std::string path;
-			sline >> std::ws;
-			if (std::getline(sline, path))
+			if ((pos = path.find(';')) != std::string::npos)
+				error_pages.insert(std::pair<int, std::string>(code, path.substr(0, pos)));
+			else
 				error_pages.insert(std::pair<int, std::string>(code, path));
 		}
 	}
 	else if (key.compare("server_name") == 0)
 	{
 		std::string name;
-		sline >> std::ws;
-		while (std::getline(sline, name, ' '))
+		size_t pos;
+		while (sline.good())
 		{
-			if (name.compare("#") == 0)
+			sline >> name;
+			if (name == "#")
 				return ;
-			names.push_back(name);
+			if ((pos = name.find(';')) != std::string::npos)
+			{
+				names.push_back(name.substr(0, pos));
+				break;
+			}
+			else
+				names.push_back(name);
 		}
 	}
 	return ;
@@ -131,23 +128,31 @@ void	Server::parse_config_file(const std::string & config_file)
 		if (!file.is_open())
 			exit(1);
 	}
+
 	std::string line_red;
 	std::string key;
 	std::stringstream parse_line;
 	bool on_server_block;
+
 	while (std::getline(file, line_red))
 	{
 		parse_line.clear();
 		parse_line.str(line_red);
-		std::getline(parse_line, key, ' ');
-		if (key.compare("server") == 0)
+		parse_line >> key;
+
+		if (key == "server")
+		{
 			on_server_block = true;
-		else if (key.compare("}") == 0){
+		}
+		else if (key == "}")
+		{
 			on_server_block = false;
-			try{
+			try
+			{
 				check_config();
 			}
-			catch (ConfigError & e){
+			catch (ConfigError & e)
+			{
 				if (config_file.compare(DEF_CONF) && !ck)
 				{
 					std::cout << e.what(config_file) << std::endl;
@@ -158,21 +163,16 @@ void	Server::parse_config_file(const std::string & config_file)
 					exit(1);
 			}
 		}
-		if (on_server_block)
+		else if (on_server_block)
 		{
-			parse_line.clear();
-			parse_line.str(line_red);
-			parse_line >> std::ws;
-			if (std::getline(parse_line, key, ' '))
+			if (key == "location")
 			{
-				if (key.compare("location") == 0)
-				{
-					Location nw;
-					nw.setValues(file);
-					locations.push_back(nw);
-				}
-				keyAssignation(key, parse_line);
+				Location nw;
+				nw.setValues(file);
+				locations.push_back(nw);
 			}
+			else
+				keyAssignation(key, parse_line);
 		}
 	}
 	file.close();

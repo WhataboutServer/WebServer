@@ -30,8 +30,8 @@ public:
 			perror("ERROR\nSocket: can't set option");
 		}
 		opt += 1;
-		//set master socket to allow multiple connections , 
-    	//this is just a good habit, it will work without this 
+		//set master socket to allow multiple connections,
+    	//this is just a good habit, it will work without this
 		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0){ //remove ipv6 only
 			perror("ERROR\nSocket: can't set option");
 		}
