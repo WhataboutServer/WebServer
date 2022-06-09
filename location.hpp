@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <map>
 #include <vector>
@@ -31,5 +32,5 @@ public:
 	bool				isMethodAllowed(const std::string & method) const;
 	Redirection const	&getRedirection() const;
 
-	void setValues(std::stringstream & sline);
+	void setValues(std::ifstream & file);
 };

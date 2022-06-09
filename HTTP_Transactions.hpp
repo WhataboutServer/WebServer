@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <unordered_map>
 using namespace std;
 
@@ -57,6 +58,10 @@ class HTTP_Request
 			}
 		}
 
+		const std::string & getVersion() const { return version; }
+		const std::string & getMethod() const { return method; }
+		const std::string & getPath() const { return path; }
+
 		~HTTP_Request() {};
 
 		friend ostream& operator<<(ostream & out, const HTTP_Request& m);
@@ -82,45 +87,73 @@ ostream& operator<<(ostream & out, const HTTP_Request& m)
 class HTTP_Response
 {
 	private:
-		string	HTTP_version;
-		string	response_status_code;
-		string	reason_phrase;
+		string							version;
+		string							response_status_code;
+		string							reason_phrase;
 		unordered_map<string, string>	headers;
-		string	message;
-
-		string response;
+		string							message;
+		string							response;
 
 		HTTP_Response(const HTTP_Response &);
 		HTTP_Response& operator=(const HTTP_Response &);
 
 	public:
 
-		HTTP_Response(const string & v, const string & c, const string & p)
-			: HTTP_version(v), response_status_code(c), reason_phrase(p)
+		HTTP_Response(const HTTP_Request & request)
+			: message(), response()
 		{
-			response = HTTP_version + " " + response_status_code + " " + reason_phrase + "\r\n";
+			version = request.getVersion();
+			if (request.getMethod().compare("GET") == 0)
+			{
+				ifstream file(request.getPath());
+				size_t lenght = 0;
+				if (file.is_open())
+				{
+					string line;
+					while(getline(file, line))
+					{
+						lenght += line.length();
+						message += line + "\r\n";
+					}
+					response_status_code = "200";
+					reason_phrase = "OK";
+					headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
+				}
+				else
+				{
+					response_status_code = "404";
+					reason_phrase = "File Not Found";
+				}
+			}
+			response += version + " " + response_status_code + " " + reason_phrase + "\r\n";
+			unordered_map<string, string>::const_iterator it = headers.begin();
+			while (it != headers.end())
+			{
+				response += it->first + ": " + it->second + "\r\n";
+				++it;
+			}
+			response += "\r\n" + message;
 		}
 		string getResponse() { return response; }
 		~HTTP_Response() {};
 		friend ostream& operator<<(ostream & out, const HTTP_Response& m);
-
 };
 
 ostream& operator<<(ostream & out, const HTTP_Response& m)
 {
-	out << "HTTP Response:" << endl;
-	out << "\tMethod: " << m.HTTP_version << endl;
-	out << "\tPath: " << m.response_status_code << endl;
-	out << "\tVersion: " << m.reason_phrase << endl;
-	out << "\tHeaders: " << endl;
-	unordered_map<string, string>::const_iterator it = m.headers.begin();
-	while (it != m.headers.end())
-	{
-		out << "\t\t" << it->first << ": " << it->second << endl;
-		++it;
-	}
-	out << "\tMessage: " << m.message << endl;
-	out << "\tResponse: " << m.response << endl;
+	// out << "HTTP Response:" << endl;
+	// out << "\tMethod: " << m.version << endl;
+	// out << "\tPath: " << m.response_status_code << endl;
+	// out << "\tVersion: " << m.reason_phrase << endl;
+	// out << "\tHeaders: " << endl;
+	// unordered_map<string, string>::const_iterator it = m.headers.begin();
+	// while (it != m.headers.end())
+	// {
+	// 	out << "\t\t" << it->first << ": " << it->second << endl;
+	// 	++it;
+	// }
+	// out << "\tMessage: " << m.message << endl;
+	out << "Response: "<< endl << m.response << endl;
 	return out;
 }
 
