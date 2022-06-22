@@ -13,9 +13,11 @@ Response::Response(const Request & request)
 	if (request.getMethod() == "GET")
 	{
 		std::string path = request.getPath();
+		std::cout << "PATH: "<< path << std::endl;
+		std::cout << "pwd PATH: "<< get_working_path() << std::endl;
 		path.erase(0, 1);
 		//____dbalducc___test___for___CGI//
-		if (path.find(".php") && check_file_exist(get_working_path() + path))
+		if (path.find(".php") && check_file_exist(get_working_path() + "/" + path))
 		{
 			message = cgi.run_cgi(path);
 			lenght = message.length();

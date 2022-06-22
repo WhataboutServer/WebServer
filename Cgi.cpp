@@ -22,20 +22,20 @@ std::string Cgi::run_cgi(std::string file_name){ //script_name=index.php
 	int fd_safe[2];
 	pid_t pid;
 
-	char **tmp = new char*[3];
+	char **tmp = new char*[2];
 	char buffer[200];
 	std::string test = "-f";
-	std::string full_path = get_working_path() + file_name;
+	std::string full_path = get_working_path()+ "/"+ file_name;
 	//size_t size;
 
 	// tmp = NULL;
 	pid = 0;
-	tmp[1] = new char[file_name.size() + 1];
-	tmp[1] = strcpy(tmp[1], (char *)full_path.c_str());
+	tmp[0] = new char[full_path.size() + 1];
+	tmp[0] = strcpy(tmp[0], (char *)full_path.c_str());
 	tmp[0] = new char[3];
 	tmp[0] = strcpy(tmp[0], (char *)test.c_str());
-	tmp[2] = new char[1];
-	tmp[2] = 0;
+	tmp[1] = new char[1];
+	tmp[1] = 0;
 	fd_safe[0] = dup(STDIN_FILENO);
 	fd_safe[1] = dup(STDOUT_FILENO);
 	if (pipe(fd_pipe) == -1)
@@ -44,24 +44,33 @@ std::string Cgi::run_cgi(std::string file_name){ //script_name=index.php
 		std::cout << "Error: fork" << std::endl;
 	if (!pid){
 		dup2(fd_pipe[1], STDOUT_FILENO);
-		execve("/usr/bin/php", tmp, NULL); // chiamare php passare filename e passare variabili decodificate
+		execve("/Users/dbalducc/.brew/opt/php/bin/php-cgi", tmp, NULL); // chiamare php passare filename e passare variabili decodificate
 		exit(0);
 	}
 	else{
 		waitpid(pid, NULL, 0);
 		close(fd_pipe[1]);
+		std::string s_tmp;
+		new_body = "<html>\r\n";
 		while(read(fd_pipe[0], buffer, 200) > 0)
 		{
-			std::cout << buffer << std::endl;
-			if(new_body.empty())
+			if (new_body.empty())
 				new_body = buffer;
 			else
-				new_body = new_body + buffer;
+			{
+				s_tmp = new_body;
+				new_body = s_tmp + buffer;
+			}
 		}
+		s_tmp = new_body;
+		new_body = s_tmp + "\n<!html>";
 		dup2(STDOUT_FILENO, fd_safe[1]);
 		dup2(STDIN_FILENO, fd_safe[0]);
 		close(fd_pipe[0]);
 	}
+	for (int i=0; i < 3; i++)
+		delete[] tmp[i];
+	delete[] tmp;
 	return(new_body);
 	// php restituisce su stdout````
 	// restituire tramite stdout al server
