@@ -29,6 +29,10 @@ Request::Request(const std::string & raw_request)
 
 Request::~Request() {}
 
+//____dbalducc___test___for___CGI//
+const std::map<std::string, std::string> & Request::getHeader() const{return headers;}
+//______________________________//
+
 const std::string & Request::getVersion() const { return version; }
 const std::string & Request::getMethod() const { return method; }
 const std::string & Request::getPath() const { return path; }
@@ -49,7 +53,7 @@ std::ostream& operator<<(std::ostream & out, const Request& m)
 {
 	out << "HTTP Request:" << std::endl;
 	out << "\tMethod: " << m.method << std::endl;
-	out << "\tPath: " << m.path << std::endl;
+	out << "\tPath: " << m.path << std::endl; // ???
 	out << "\tVersion: " << m.version << std::endl;
 	out << "\tHeaders: " << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = m.headers.begin(); it != m.headers.end(); ++it)

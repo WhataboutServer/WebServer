@@ -7,6 +7,7 @@ Response::Response(const Request & request)
 	: message(), response()
 {
 	version = request.getVersion();
+
 	if (request.getMethod() == "GET")
 	{
 		std::string path = request.getPath();

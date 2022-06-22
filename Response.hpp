@@ -7,6 +7,8 @@
 #include <sstream>
 #include <fstream>
 #include <unordered_map>
+
+#include "Cgi.hpp"
 using namespace std;
 
 class Request;
@@ -25,8 +27,8 @@ class Response
 		Response(const Response &);
 		Response& operator=(const Response &);
 
-	public:
-
+		//____dbalducc___test___for___CGI//
+		public:
 		Response(const Request & request);
 
 		~Response();

@@ -28,7 +28,9 @@ class Request
 		Request(const std::string & raw_request);
 
 		~Request();
-
+		//____dbalducc___test___for___CGI//
+		const std::map<std::string, std::string> & getHeader() const;
+		//______________________________//
 		const std::string & getVersion() const;
 		const std::string & getMethod() const;
 		const std::string & getPath() const;

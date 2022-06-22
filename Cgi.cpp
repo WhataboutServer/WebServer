@@ -8,14 +8,16 @@ Cgi::Cgi(){
 	//// submit di un form con GET 
 	//// link diretto include info dopo '?'
 	//// é URL encoded
-
+	this->new_body = NULL;
 
 }
 
 Cgi::~Cgi(){
 }
 
-std::string Cgi::run_cgi(std::string file_name){ //script_name=index.php
+const std::string &Cgi::getNew_body(){return this->new_body;}
+
+std::string Cgi::run_cgi(std::string file_name, std::map<std::string, std::string> header){ //script_name=index.php
 	int fd_pipe[2];
 	int fd_safe[2];
 	pid_t pid;
@@ -48,7 +50,13 @@ std::string Cgi::run_cgi(std::string file_name){ //script_name=index.php
 		waitpid(pid, NULL, 0);
 		close(fd_pipe[1]);
 		while(read(fd_pipe[0], buffer, 200) > 0)
+		{
 			std::cout << buffer << std::endl;
+			if(new_body.empty())
+				new_body = buffer;
+			else
+				new_body = new_body + buffer;
+		}
 		dup2(STDOUT_FILENO, fd_safe[1]);
 		dup2(STDIN_FILENO, fd_safe[0]);
 		close(fd_pipe[0]);
