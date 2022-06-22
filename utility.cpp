@@ -1,3 +1,4 @@
+//____dbalducc___test___for___CGI//
 #include "utility.hpp"
 #include <fstream>
 
@@ -16,3 +17,4 @@ std::string get_working_path()
    char temp[4096];
    return ( getcwd(temp, sizeof(temp)) ? std::string( temp ) : std::string("") );
 }
+//______________________________//

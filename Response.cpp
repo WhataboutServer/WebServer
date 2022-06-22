@@ -14,6 +14,7 @@ Response::Response(const Request & request)
 	{
 		std::string path = request.getPath();
 		path.erase(0, 1);
+		//____dbalducc___test___for___CGI//
 		if (path.find(".php") && check_file_exist(get_working_path() + path))
 		{
 			message = cgi.run_cgi(path);
@@ -22,7 +23,10 @@ Response::Response(const Request & request)
 			reason_phrase = "OK";
 			headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
 		}
+		//______________________________//
+		//____dbalducc___test___for___CGI//
 		else{
+		//______________________________//
 			ifstream file(path);
 			if (file.is_open())
 			{
@@ -52,7 +56,9 @@ Response::Response(const Request & request)
 				reason_phrase = "File Not Found";
 				headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
 			}
+		//____dbalducc___test___for___CGI//
 		}
+		//______________________________//
 	}
 	response += version + " " + response_status_code + " " + reason_phrase + "\r\n";
 	unordered_map<string, string>::const_iterator it = headers.begin();
