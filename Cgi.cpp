@@ -8,16 +8,16 @@ Cgi::Cgi(){
 	//// submit di un form con GET 
 	//// link diretto include info dopo '?'
 	//// é URL encoded
-	this->new_body = NULL;
+	this->new_body = "";
 
 }
 
 Cgi::~Cgi(){
 }
 
-const std::string &Cgi::getNew_body(){return this->new_body;}
+const std::string &Cgi::getNew_body() const{return this->new_body;}
 
-std::string Cgi::run_cgi(std::string file_name, std::map<std::string, std::string> header){ //script_name=index.php
+std::string Cgi::run_cgi(std::string file_name){ //script_name=index.php
 	int fd_pipe[2];
 	int fd_safe[2];
 	pid_t pid;
@@ -25,12 +25,13 @@ std::string Cgi::run_cgi(std::string file_name, std::map<std::string, std::strin
 	char **tmp = new char*[3];
 	char buffer[200];
 	std::string test = "-f";
+	std::string full_path = get_working_path() + file_name;
 	//size_t size;
 
 	// tmp = NULL;
 	pid = 0;
 	tmp[1] = new char[file_name.size() + 1];
-	tmp[1] = strcpy(tmp[1], (char *)file_name.c_str());
+	tmp[1] = strcpy(tmp[1], (char *)full_path.c_str());
 	tmp[0] = new char[3];
 	tmp[0] = strcpy(tmp[0], (char *)test.c_str());
 	tmp[2] = new char[1];
@@ -61,7 +62,7 @@ std::string Cgi::run_cgi(std::string file_name, std::map<std::string, std::strin
 		dup2(STDIN_FILENO, fd_safe[0]);
 		close(fd_pipe[0]);
 	}
-	return("ciao");
+	return(new_body);
 	// php restituisce su stdout````
 	// restituire tramite stdout al server
 }

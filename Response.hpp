@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "Cgi.hpp"
+#include "utility.hpp"
 using namespace std;
 
 class Request;

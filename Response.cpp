@@ -2,33 +2,28 @@
 
 #include "Response.hpp"
 #include "Request.hpp"
+#include <filesystem>
 
 Response::Response(const Request & request)
 	: message(), response()
 {
+	Cgi cgi;
 	version = request.getVersion();
-
+	size_t lenght = 0;
 	if (request.getMethod() == "GET")
 	{
 		std::string path = request.getPath();
 		path.erase(0, 1);
-		ifstream file(path);
-		size_t lenght = 0;
-		if (file.is_open())
+		if (path.find(".php") && check_file_exist(get_working_path() + path))
 		{
-			string line;
-			while(getline(file, line))
-			{
-				lenght += line.length();
-				message += line + "\r\n";
-			}
+			message = cgi.run_cgi(path);
+			lenght = message.length();
 			response_status_code = "200";
 			reason_phrase = "OK";
 			headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
 		}
-		else
-		{
-			file.open("error_pages/404.html");
+		else{
+			ifstream file(path);
 			if (file.is_open())
 			{
 				string line;
@@ -37,10 +32,26 @@ Response::Response(const Request & request)
 					lenght += line.length();
 					message += line + "\r\n";
 				}
+				response_status_code = "200";
+				reason_phrase = "OK";
+				headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
 			}
-			response_status_code = "404";
-			reason_phrase = "File Not Found";
-			headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
+			else
+			{
+				file.open("error_pages/404.html");
+				if (file.is_open())
+				{
+					string line;
+					while(getline(file, line))
+					{
+						lenght += line.length();
+						message += line + "\r\n";
+					}
+				}
+				response_status_code = "404";
+				reason_phrase = "File Not Found";
+				headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
+			}
 		}
 	}
 	response += version + " " + response_status_code + " " + reason_phrase + "\r\n";

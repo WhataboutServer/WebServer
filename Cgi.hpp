@@ -1,8 +1,12 @@
+#pragma once
+
 #include <map>
 #include <string>
 #include <unistd.h>
 #include <iostream>
 #include <unistd.h>
+
+#include "utility.hpp"
 
 
 class Cgi
