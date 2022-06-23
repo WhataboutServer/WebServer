@@ -1,0 +1,10 @@
+#!/bin/bash
+web_image=$(docker images | grep web | wc -l)
+echo $web_image
+
+if [[ $web_image != 0 ]] 
+then
+	docker build . -t web-server
+	# docker run --network host -v $(pwd):/home/app/web_server -it web-server  bash
+	docker run -p 8000:8000 -p 8001:8001 -p 8002:8002 -v $(pwd):/home/app/web_server -it web-server  bash
+fi
