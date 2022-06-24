@@ -7,7 +7,7 @@
 Response::Response(const Request & request)
 	: message(), response()
 {
-	Cgi cgi;
+	// Cgi cgi;
 	version = request.getVersion();
 	size_t lenght = 0;
 	if (request.getMethod() == "GET")
@@ -17,17 +17,17 @@ Response::Response(const Request & request)
 		std::cout << "pwd PATH: "<< get_working_path() << std::endl;
 		path.erase(0, 1);
 		//____dbalducc___test___for___CGI//
-		if (path.find(".php") && check_file_exist(get_working_path() + "/" + path))
-		{
-			message = cgi.run_cgi(path);
-			lenght = message.length();
-			response_status_code = "200";
-			reason_phrase = "OK";
-			headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
-		}
+		// if (path.find(".php") && check_file_exist(get_working_path() + "/" + path))
+		// {
+		// 	message = cgi.run_cgi(path);
+		// 	lenght = message.length();
+		// 	response_status_code = "200";
+		// 	reason_phrase = "OK";
+		// 	headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
+		// }
 		//______________________________//
 		//____dbalducc___test___for___CGI//
-		else{
+		// else{
 		//______________________________//
 			ifstream file(path);
 			if (file.is_open())
@@ -38,9 +38,6 @@ Response::Response(const Request & request)
 					lenght += line.length();
 					message += line + "\r\n";
 				}
-				response_status_code = "200";
-				reason_phrase = "OK";
-				headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
 			}
 			else
 			{
@@ -59,7 +56,7 @@ Response::Response(const Request & request)
 				headers.insert(pair<string, string>("Content-Length", to_string(lenght)));
 			}
 		//____dbalducc___test___for___CGI//
-		}
+		// }
 		//______________________________//
 	}
 	response += version + " " + response_status_code + " " + reason_phrase + "\r\n";

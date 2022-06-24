@@ -9,7 +9,7 @@
 #include <cstring>		//bzero()
 #include <unistd.h>		//close()
 
-#include <sys/event.h>	//kqueue kevent
+#include <sys/epoll.h>
 
 // #include "location.hpp"
 #include "connected_client.hpp"
@@ -20,7 +20,7 @@ class Server
 {
 protected:
 	// attributes
-	int const							&kqueue_fd;
+	int const							&epollfd;
 	// configuration parameters
 	std::map<int, std::string>			error_pages;
 	size_t								client_body_size;
@@ -28,7 +28,7 @@ protected:
 
 public:
 	// constructor
-	Server(int const &kqueue_fdg);
+	Server(int const &epoll_fd);
 
 	// destructor
 	~Server();

@@ -1,7 +1,7 @@
 #include "default_server.hpp"
 
 // constructor
-DefaultServer::DefaultServer(int const &kqueue_fd, unsigned int backlog) : Server(kqueue_fd), backlog(backlog)
+DefaultServer::DefaultServer(int const &epollfd, unsigned int backlog) : Server(epollfd), backlog(backlog)
 {
 	bzero(buf, BUFFER_SIZE);
 	bzero(&server_addr, sizeof(server_addr));
@@ -24,7 +24,7 @@ DefaultServer::~DefaultServer()
 struct sockaddr_in const	&DefaultServer::getAddress() const { return server_addr; }
 unsigned int const			&DefaultServer::getBacklog() const { return backlog; }
 int const					&DefaultServer::getListeningFd() const { return listening_fd; }
-int const					&DefaultServer::getKqueueFd() const { return kqueue_fd; }
+int const					&DefaultServer::getKqueueFd() const { return epollfd; }
 
 // communication
 void DefaultServer::startListening()
@@ -52,15 +52,15 @@ void DefaultServer::startListening()
 		exit(EXIT_FAILURE);
 	}
 
-	struct kevent event;
-	bzero(&event, sizeof(event));
-	EV_SET(&event, listening_fd, EVFILT_READ, EV_ADD, 0, 0, (void *)this);		// ident = listening_fd
-	if (kevent(kqueue_fd, &event, 1, nullptr, 0, nullptr) == -1)				// filter = READ
-	{																			// udata = DefaultServer*
-		//TODO handle error
-		perror("ERROR\nDefaultServer.startListening(): kevent()");
+	struct epoll_event ev;
+	ev.events = EPOLLIN | EPOLLET;
+	ev.data.fd = listening_fd;
+	ev.data.ptr = (void *)this;
+	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listening_fd, &ev) == -1) {
+		perror("epoll_ctl: listen_sock");
 		exit(EXIT_FAILURE);
 	}
+
 
 	//DEBUG
 	std::cout << "-----------------------------------------------------------" << std::endl;
@@ -100,28 +100,27 @@ void DefaultServer::connectToClient()
 	clients.insert(std::pair<int,ConnectedClient>(connected_fd, ConnectedClient(connected_fd, client_addr)));
 
 	// add new connected_fd to kqueue for READ monitoring
-	struct kevent event;
-	bzero(&event, sizeof(event));
-	EV_SET(&event, connected_fd, EVFILT_READ, EV_ADD, 0, 0, this);		// ident = connected_fd
-	if (kevent(kqueue_fd, &event, 1, nullptr, 0, nullptr) == -1)		// filter = READ
-	{																	// udata = DefaultServer*
-		//TODO handle error
-		perror("ERROR\nDefaultServer.connectToClient(): kevent()");
-		exit(EXIT_FAILURE);
+	struct epoll_event ev;
+	ev.events = EPOLLIN | EPOLLET;
+	ev.data.fd = connected_fd;
+	if(epoll_ctl(epollfd, EPOLL_CTL_MOD, connected_fd, &ev)<0)
+	{
+		printf("Failed to insert socket into epoll.\n");
 	}
+
 
 	//debug
 	std::cout << "\nThe event with ident = " << connected_fd << " and filter EVFILT_READ has been added to kqueue" << \
 			"\nthere are currently " << clients.size() << " clients connected\n" << std::endl;
 }
 
-void DefaultServer::receiveRequest(struct kevent const event)
+void DefaultServer::receiveRequest(struct epoll_event const event)
 {
 	//debug
 	std::cout << "-----------------------------------------------------------" << std::endl;
 	std::cout << "\nDefaultServer.receiveRequest():" << std::endl;
 
-	int connected_fd = event.ident;
+	int connected_fd = event.data.fd;
 
 	// find client corresponding to connected_fd
 	if (clients.find(connected_fd) == clients.end())
@@ -148,12 +147,12 @@ void DefaultServer::receiveRequest(struct kevent const event)
 	client.message += buf;
 
 	//debug
-	std::cout << "\nreceived data = \"" << buf << "\"" \
+/*	std::cout << "\nreceived data = \"" << buf << "\"" \
 			"\nreceived request = \"" << client.message << "\"" \
 			"\nread_bytes = " << read_bytes << \
 			"\nBUFFER_SIZE - 1 = " << BUFFER_SIZE - 1 << \
 			"\nEOF = " << (event.flags & EV_EOF) << std::endl;
-
+*/
 	bzero(buf, BUFFER_SIZE);
 
 	if (read_bytes < (BUFFER_SIZE - 1))// && event.flags & EV_EOF)
@@ -162,16 +161,22 @@ void DefaultServer::receiveRequest(struct kevent const event)
 		std::cout << "\nThe whole request has been received" << std::endl;
 
 		// remove connected_fd to kqueue from READ monitoring
-		struct kevent event;
-		bzero(&event, sizeof(event));
-		EV_SET(&event, client.connected_fd, EVFILT_READ, EV_DELETE, 0, 0, this);
-		if (kevent(kqueue_fd, &event, 1, nullptr, 0, nullptr) == -1)
+		// struct kevent event;
+		// bzero(&event, sizeof(event));
+		// EV_SET(&event, client.connected_fd, EVFILT_READ, EV_DELETE, 0, 0, this);
+		// if (kevent(epollfd, &event, 1, nullptr, 0, nullptr) == -1)
+		// {
+		// 	//TODO handle error
+		// 	perror("ERROR\nDefaultServer.receiveRequest: kevent()");
+		// 	exit(EXIT_FAILURE);
+		// }
+
+		struct epoll_event ev;
+		if (epoll_ctl(epollfd, EPOLL_CTL_DEL, client.connected_fd, &ev) == -1)
 		{
-			//TODO handle error
-			perror("ERROR\nDefaultServer.receiveRequest: kevent()");
+			perror("epoll_ctl: delete socket from epoll");
 			exit(EXIT_FAILURE);
 		}
-
 		//debug
 		std::cout << "\nThe event with ident = " << client.connected_fd << " and filter EVFILT_READ has been removed from kqueue\n" << std::endl;
 		dispatchRequest(client);
@@ -232,16 +237,24 @@ void DefaultServer::sendResponse(int const connected_fd, int const buf_size)
 		//debug
 		std::cout << "\nThe whole response has been sent" << std::endl;
 		// remove connected_fd from kqueue
-		struct kevent event;
-		bzero(&event, sizeof(event));
-		EV_SET(&event, connected_fd, EVFILT_WRITE, EV_DELETE, 0, 0, this);
-		if (kevent(kqueue_fd, &event, 1, nullptr, 0, nullptr) == -1)
+		// struct kevent event;
+		// bzero(&event, sizeof(event));
+		// EV_SET(&event, connected_fd, EVFILT_WRITE, EV_DELETE, 0, 0, this);
+		// if (kevent(epollfd, &event, 1, nullptr, 0, nullptr) == -1)
+		// {
+		// 	//TODO handle error
+		// 	// perror("ERROR\nDefaultServer.sendResponse(): kevent()");
+		// 	std::cout << "ERROR\nDefaultServer.sendResponse(): kevent(): errno = " << errno << std::endl;
+		// 	exit(EXIT_FAILURE);
+		// }
+
+		struct epoll_event ev;
+		if (epoll_ctl(epollfd, EPOLL_CTL_DEL, client.connected_fd, &ev) == -1)
 		{
-			//TODO handle error
-			// perror("ERROR\nDefaultServer.sendResponse(): kevent()");
-			std::cout << "ERROR\nDefaultServer.sendResponse(): kevent(): errno = " << errno << std::endl;
+			perror("epoll_ctl: delete socket from epoll");
 			exit(EXIT_FAILURE);
 		}
+
 
 		// close connected_fd and erase it from the map of clients
 		if (close(connected_fd) == -1)

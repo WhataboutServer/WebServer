@@ -7,15 +7,15 @@ SRCS		= 	main.cpp \
 				connected_client.cpp \
 				Response.cpp \
 				Request.cpp \
-				Cgi.cpp \
-				utility.cpp \
+				utility.cpp
+				# Cgi.cpp 
 				# location.cpp
 
 OBJS		= 	$(SRCS:.cpp=.o)
 
 CFLAGS		= 	-Wall -Wextra -Werror
 
-CC			= 	g++
+CC			= 	c++
 
 %.o :		%.cpp
 			$(CC) -g -c -I. $(CFLAGS) $< -o $@

@@ -73,7 +73,7 @@
 Cluster::Cluster()
 {
 	// std::cout << "inizio constructor cluster" << std::endl;
-	default_servers.insert(std::pair<address,DefaultServer>(address(inet_addr("0.0.0.0"), htons(8080)), DefaultServer(kqueue_fd, BACKLOG_SIZE)));
+	default_servers.insert(std::pair<address,DefaultServer>(address(inet_addr("0.0.0.0"), htons(8080)), DefaultServer(epollfd, BACKLOG_SIZE)));
 	// std::cout << "fine constructor cluster" << std::endl;
 	// std::cout << "ci sono " << default_servers.size() << " default servers nel cluster" << std::endl;
 }
@@ -84,17 +84,15 @@ Cluster::~Cluster() {}
 // getters
 int Cluster::getKqueueFd() const
 {
-	return kqueue_fd;
+	return epollfd;
 }
 
 // run
 void Cluster::run()
 {
-	kqueue_fd = kqueue();
-	if (kqueue_fd == -1)
-	{
-		//TODO handle error
-		perror("ERROR\ncluster.run(): epoll_create1()");
+	epollfd = epoll_create1(0);
+	if (epollfd == -1) {
+		perror("epoll_create1");
 		exit(EXIT_FAILURE);
 	}
 
@@ -104,58 +102,42 @@ void Cluster::run()
 		it->second.startListening();
 	}
 
-	// let servers connect and communicate with clients
-	int	num_ready_fds;
-	while (1)
-	{
-		num_ready_fds = kevent(kqueue_fd, nullptr, 0, triggered_events, N_EVENTS, nullptr);
-
-		//debug
-		std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
-		std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
-		std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
-		std::cout << "\nCluster.run():\n\nkevent() returned " << num_ready_fds << " events\n" << std::endl;
-
-		if (num_ready_fds == -1)
-		{
-			//TODO handle error
-			perror("ERROR\ncluster.run(): kevent()");
+	int nfds;
+	for (;;) {
+		nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
+		if (nfds == -1) {
+			perror("epoll_wait");
 			exit(EXIT_FAILURE);
 		}
-
-		// handle the event triggered on the monitored fds
-		for (int i = 0; i < num_ready_fds; ++i)
-		{
-			//debug
-			std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
-			std::cout << "\nnew 'for loop' starting with index = " << i << std::endl;
-
-			DefaultServer *default_server = (DefaultServer *)triggered_events[i].udata;
-
-			if (triggered_events[i].flags == EV_ERROR)
+		
+		for (int n = 0; n < nfds; ++n) {
+			DefaultServer *default_server = (DefaultServer *)events[n].data.ptr;
+			if (events[n].events == EPOLLERR)
 			{
 				//debug
-				std::cout << "the event has flags = EV_ERROR\n" << std::endl;
+				std::cout << "the event has flags = EPOLLERR\n" << std::endl;
 
 				//the connected_fd got an error_filter
 				//TODO handle error
-				std::cout << "ERROR\nan event reported EV_ERROR in flags" << std::endl;
-				strerror(triggered_events[i].data);
+				std::cout << "ERROR\nan event reported EPOLLERR in flags" << std::endl;
+				// strerror(events[n].data.ptr);
 			}
-			else if (triggered_events[i].filter == EVFILT_WRITE)
+			else if (events[n].events == EPOLLOUT)
 			{
 				//debug
-				std::cout << "the event has filter = EVFILT_WRITE\n" << std::endl;
+				std::cout << "the event has filter = EPOLLOUT\n" << std::endl;
 
 				// response can be sent to connected_fd
-				default_server->sendResponse(triggered_events[i].ident, triggered_events[i].data);
+				default_server->sendResponse(events[n].data.fd, events[n].data.u32);
 			}
-			else if (triggered_events[i].filter == EVFILT_READ)
+			else if (events[n].events == EPOLLIN)
 			{
 				//debug
-				std::cout << "the event has filter = EVFILT_READ\n" << std::endl;
+				std::cout << "the event has filter = EPOLLIN\n" << std::endl;
+				std::cout << "event fd:\t" << events[n].data.fd << std::endl;
+				std::cout << "server fd:\t" << default_server->getListeningFd() << std::endl;
 
-				if (triggered_events[i].ident == (unsigned long)default_server->getListeningFd())
+				if (events[n].data.fd == default_server->getListeningFd())
 				{
 					//debug
 					std::cout << "the event has fd = listening_fd\n" << std::endl;
@@ -166,16 +148,86 @@ void Cluster::run()
 				else
 				{
 					//debug
-					std::cout << "the event has fd = " << triggered_events[i].ident << " != listening_fd\n" << std::endl;
+					std::cout << "the event has fd = " << events[n].data.fd << " != listening_fd\n" << std::endl;
 
 					// request can be received from connected_fd
-					default_server->receiveRequest(triggered_events[i]);
+					default_server->receiveRequest(events[n]);
 				}
 			}
-
-			//debug
-			std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
-			std::cout << "\nCluster.run():\n\n'for loop' with index = " << i << " is over. Maximum index = " << num_ready_fds - 1 << std::endl << std::endl;
 		}
 	}
 }
+	// let servers connect and communicate with clients
+	// int	num_ready_fds;
+	// while (1)
+	// {
+	// 	num_ready_fds = kevent(kqueue_fd, nullptr, 0, triggered_events, N_EVENTS, nullptr);
+
+	// 	//debug
+	// 	std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
+	// 	std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
+	// 	std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
+	// 	std::cout << "\nCluster.run():\n\nkevent() returned " << num_ready_fds << " events\n" << std::endl;
+
+	// 	if (num_ready_fds == -1)
+	// 	{
+	// 		//TODO handle error
+	// 		perror("ERROR\ncluster.run(): kevent()");
+	// 		exit(EXIT_FAILURE);
+	// 	}
+
+	// 	// handle the event triggered on the monitored fds
+	// 	for (int i = 0; i < num_ready_fds; ++i)
+	// 	{
+	// 		//debug
+	// 		std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
+	// 		std::cout << "\nnew 'for loop' starting with index = " << i << std::endl;
+
+	// 		DefaultServer *default_server = (DefaultServer *)triggered_events[i].udata;
+
+	// 		if (triggered_events[i].flags == EV_ERROR)
+	// 		{
+	// 			//debug
+	// 			std::cout << "the event has flags = EV_ERROR\n" << std::endl;
+
+	// 			//the connected_fd got an error_filter
+	// 			//TODO handle error
+	// 			std::cout << "ERROR\nan event reported EV_ERROR in flags" << std::endl;
+	// 			strerror(triggered_events[i].data);
+	// 		}
+	// 		else if (triggered_events[i].filter == EVFILT_WRITE)
+	// 		{
+	// 			//debug
+	// 			std::cout << "the event has filter = EVFILT_WRITE\n" << std::endl;
+
+	// 			// response can be sent to connected_fd
+	// 			default_server->sendResponse(triggered_events[i].ident, triggered_events[i].data);
+	// 		}
+	// 		else if (triggered_events[i].filter == EVFILT_READ)
+	// 		{
+	// 			//debug
+	// 			std::cout << "the event has filter = EVFILT_READ\n" << std::endl;
+
+	// 			if (triggered_events[i].ident == (unsigned long)default_server->getListeningFd())
+	// 			{
+	// 				//debug
+	// 				std::cout << "the event has fd = listening_fd\n" << std::endl;
+
+	// 				// listening_fd ready to accept a new connection from client
+	// 				default_server->connectToClient();
+	// 			}
+	// 			else
+	// 			{
+	// 				//debug
+	// 				std::cout << "the event has fd = " << triggered_events[i].ident << " != listening_fd\n" << std::endl;
+
+	// 				// request can be received from connected_fd
+	// 				default_server->receiveRequest(triggered_events[i]);
+	// 			}
+	// 		}
+
+	// 		//debug
+	// 		std::cout << "|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" << std::endl;
+	// 		std::cout << "\nCluster.run():\n\n'for loop' with index = " << i << " is over. Maximum index = " << num_ready_fds - 1 << std::endl << std::endl;
+	// 	}
+	// }

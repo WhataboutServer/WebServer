@@ -9,7 +9,8 @@
 #include <cstring>		//bzero
 #include <unistd.h>		//close
 #include <fcntl.h>		//fcntl
-#include <sys/event.h>	//kqueue kevent
+
+#include <sys/epoll.h>
 
 #include "server.hpp"
 
@@ -53,7 +54,7 @@ public:
 	// communication
 	void startListening();
 	void connectToClient();
-	void receiveRequest(struct kevent const event);
+	void receiveRequest(struct epoll_event const event);
 	void dispatchRequest(ConnectedClient &client);
 	// void prepareResponse(ConnectedClient &client);		// inherited from Server
 	void sendResponse(int const connected_fd, int const buf_size);
