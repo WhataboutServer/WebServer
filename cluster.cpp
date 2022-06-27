@@ -95,6 +95,7 @@ void Cluster::run()
 		perror("epoll_create1");
 		exit(EXIT_FAILURE);
 	}
+	std::cout << "cluster epollfd: " << epollfd << std::endl;
 
 	// make servers listen and add them to kqueue
 	for (std::map<address,DefaultServer>::iterator it = default_servers.begin(); it != default_servers.end(); ++it)
@@ -111,7 +112,8 @@ void Cluster::run()
 		}
 		
 		for (int n = 0; n < nfds; ++n) {
-			DefaultServer *default_server = (DefaultServer *)events[n].data.ptr;
+			Event * costumeEvent = (Event*)events[n].data.ptr;
+
 			if (events[n].events == EPOLLERR)
 			{
 				//debug
@@ -128,22 +130,22 @@ void Cluster::run()
 				std::cout << "the event has filter = EPOLLOUT\n" << std::endl;
 
 				// response can be sent to connected_fd
-				default_server->sendResponse(events[n].data.fd, events[n].data.u32);
+				costumeEvent->ptr->sendResponse(costumeEvent->fd, 0);
 			}
 			else if (events[n].events == EPOLLIN)
 			{
 				//debug
 				std::cout << "the event has filter = EPOLLIN\n" << std::endl;
 				std::cout << "event fd:\t" << events[n].data.fd << std::endl;
-				std::cout << "server fd:\t" << default_server->getListeningFd() << std::endl;
+				std::cout << "server fd:\t" << costumeEvent->ptr->getListeningFd() << std::endl;
 
-				if (events[n].data.fd == default_server->getListeningFd())
+				if (costumeEvent->fd == costumeEvent->ptr->getListeningFd())
 				{
 					//debug
 					std::cout << "the event has fd = listening_fd\n" << std::endl;
 
 					// listening_fd ready to accept a new connection from client
-					default_server->connectToClient();
+					costumeEvent->ptr->connectToClient();
 				}
 				else
 				{
@@ -151,7 +153,7 @@ void Cluster::run()
 					std::cout << "the event has fd = " << events[n].data.fd << " != listening_fd\n" << std::endl;
 
 					// request can be received from connected_fd
-					default_server->receiveRequest(events[n]);
+					costumeEvent->ptr->receiveRequest(events[n]);
 				}
 			}
 		}

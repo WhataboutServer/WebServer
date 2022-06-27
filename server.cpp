@@ -49,6 +49,8 @@ void Server::prepareResponse(ConnectedClient &client, void *default_server)
 // ================================================================================================
 void Server::prepareResponse(ConnectedClient &client, const Request & request)
 {
+	std::cout << "server epollfd: " << epollfd << std::endl;
+
 	//debug
 	// Server *ptr = (Server*)default_server;
 	// ptr = nullptr;

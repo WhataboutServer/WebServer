@@ -16,6 +16,9 @@
 
 #define BUFFER_SIZE BUFSIZ
 
+
+
+
 class DefaultServer : public Server
 {
 private:
@@ -39,6 +42,7 @@ private:
 	char								buf[BUFFER_SIZE];
 
 public:
+	
 	// constructor
 	DefaultServer(int const &kqueue_fd, unsigned int backlog);
 
@@ -59,4 +63,10 @@ public:
 	// void prepareResponse(ConnectedClient &client);		// inherited from Server
 	void sendResponse(int const connected_fd, int const buf_size);
 
+};
+
+struct Event
+{
+	int fd;
+	DefaultServer *ptr;
 };

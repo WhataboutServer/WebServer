@@ -27,9 +27,9 @@ protected:
 	// std::map<std::string,Location>		locations;
 
 public:
+
 	// constructor
 	Server(int const &epoll_fd);
-
 	// destructor
 	~Server();
 
