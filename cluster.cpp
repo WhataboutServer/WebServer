@@ -110,9 +110,12 @@ void Cluster::run()
 			perror("epoll_wait");
 			exit(EXIT_FAILURE);
 		}
-		
+
+		std::cout << "An event occurred" <<  std::endl;
+
 		for (int n = 0; n < nfds; ++n) {
 			Event * costumeEvent = (Event*)events[n].data.ptr;
+			// Event * costumeEvent;
 
 			if (events[n].events == EPOLLERR)
 			{
@@ -130,30 +133,29 @@ void Cluster::run()
 				std::cout << "the event has filter = EPOLLOUT\n" << std::endl;
 
 				// response can be sent to connected_fd
-				costumeEvent->ptr->sendResponse(costumeEvent->fd, 0);
+				costumeEvent->getDS()->sendResponse(costumeEvent->getFd(), 0);
 			}
 			else if (events[n].events == EPOLLIN)
 			{
 				//debug
 				std::cout << "the event has filter = EPOLLIN\n" << std::endl;
-				std::cout << "event fd:\t" << events[n].data.fd << std::endl;
-				std::cout << "server fd:\t" << costumeEvent->ptr->getListeningFd() << std::endl;
-
-				if (costumeEvent->fd == costumeEvent->ptr->getListeningFd())
+				
+				if (costumeEvent->getFd() == costumeEvent->getDS()->getListeningFd())
 				{
 					//debug
 					std::cout << "the event has fd = listening_fd\n" << std::endl;
 
 					// listening_fd ready to accept a new connection from client
-					costumeEvent->ptr->connectToClient();
+					costumeEvent->getDS()->connectToClient();
 				}
 				else
 				{
 					//debug
-					std::cout << "the event has fd = " << events[n].data.fd << " != listening_fd\n" << std::endl;
+					std::cout << "the event has fd = " << events[n].data.fd << " !=";
+					std::cout << " from " << costumeEvent->getDS()->getListeningFd() << std::endl;
 
 					// request can be received from connected_fd
-					costumeEvent->ptr->receiveRequest(events[n]);
+					costumeEvent->getDS()->receiveRequest(events[n]);
 				}
 			}
 		}

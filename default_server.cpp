@@ -54,17 +54,17 @@ void DefaultServer::startListening()
 
 	struct epoll_event ev;
 	ev.events = EPOLLIN | EPOLLET;
-	Event costumeEventData;
-	costumeEventData.fd = listening_fd;
-	costumeEventData.ptr = this;
-	ev.data.ptr = (void *)costumeEventData;
+	// ev.data.fd = listening_fd;
+	Event *costumeEventData = new Event;
+	costumeEventData->fd = listening_fd;
+	costumeEventData->ptr = this;
+	ev.data.ptr = costumeEventData;
 	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listening_fd, &ev) == -1) {
 		perror("epoll_ctl: listen_sock");
 		exit(EXIT_FAILURE);
 	}
 
-	std::cout << "DefaultServer epollfd: " << epollfd << std::endl;
-	std::cout << "DefaultServer listen: " << ev.data.fd << std::endl;
+	std::cout << "listening on fd = " << listening_fd << std::endl;
 
 	//DEBUG
 	std::cout << "-----------------------------------------------------------" << std::endl;
