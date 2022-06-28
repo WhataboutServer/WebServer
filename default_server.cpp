@@ -154,12 +154,12 @@ void DefaultServer::receiveRequest(struct epoll_event const event)
 	client.message += buf;
 
 	//debug
-/*	std::cout << "\nreceived data = \"" << buf << "\"" \
+	std::cout << "\nreceived data = \"" << buf << "\"" \
 			"\nreceived request = \"" << client.message << "\"" \
 			"\nread_bytes = " << read_bytes << \
-			"\nBUFFER_SIZE - 1 = " << BUFFER_SIZE - 1 << \
-			"\nEOF = " << (event.flags & EV_EOF) << std::endl;
-*/
+			"\nBUFFER_SIZE - 1 = " << BUFFER_SIZE - 1 ;
+			// "\nEOF = " << (event.flags & EV_EOF) << std::endl;
+
 	bzero(buf, BUFFER_SIZE);
 
 	if (read_bytes < (BUFFER_SIZE - 1))// && event.flags & EV_EOF)
@@ -184,7 +184,7 @@ void DefaultServer::receiveRequest(struct epoll_event const event)
 			perror("epoll_ctl: delete socket from epoll");
 			exit(EXIT_FAILURE);
 		}
-		
+
 		//debug
 		std::cout << "\nThe event with ident = " << client.connected_fd << " and filter EVFILT_READ has been removed from kqueue\n" << std::endl;
 		dispatchRequest(client);
@@ -207,10 +207,22 @@ void DefaultServer::dispatchRequest(ConnectedClient &client)
 	// prepareResponse(client, serverRequested);
 	serverRequested->prepareResponse(client, request);
 	// sendResponse(client.connected_fd, BUFFER_SIZE);
+
+	struct epoll_event ev;
+	ev.events = EPOLLOUT;
+	Event *costumeEventData = new Event;
+	costumeEventData->fd = client.connected_fd;
+	costumeEventData->ptr = this;
+	ev.data.ptr = costumeEventData;
+	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, client.connected_fd, &ev) == -1) {
+		printf("Failed to insert socket into epoll.\n");
+	}
+
 }
 
 void DefaultServer::sendResponse(int const connected_fd, int const buf_size)
 {
+	std::cout << "\nReady to response "<< std::endl;	//DEBUG
 	// find client corresponding to connected_fd
 	if (clients.find(connected_fd) == clients.end())
 	{

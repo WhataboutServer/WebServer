@@ -131,9 +131,10 @@ void Cluster::run()
 			{
 				//debug
 				std::cout << "the event has filter = EPOLLOUT\n" << std::endl;
+				std::cout << "ready ro sendResponse\n" << std::endl;
 
 				// response can be sent to connected_fd
-				srv->sendResponse(costumeEvent->fd, 0);
+				srv->sendResponse(costumeEvent->fd, 500000);
 			}
 			else if (events[n].events == EPOLLIN)
 			{

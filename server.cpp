@@ -82,13 +82,13 @@ void Server::prepareResponse(ConnectedClient &client, const Request & request)
 	// 	printf("Failed to insert socket into epoll.\n");
 	// }
 
-	struct epoll_event ev;
-	ev.events = EPOLLOUT;
-	ev.data.fd = client.connected_fd;
-	if(epoll_ctl(epollfd, EPOLL_CTL_ADD, client.connected_fd, &ev)<0)
-	{
-		printf("Failed to insert socket into epoll.\n");
-	}
+	// struct epoll_event ev;
+	// ev.events = EPOLLOUT;
+	// ev.data.fd = client.connected_fd;
+	// if(epoll_ctl(epollfd, EPOLL_CTL_ADD, client.connected_fd, &ev)<0)
+	// {
+	// 	printf("Failed to insert socket into epoll.\n");
+	// }
 
 	std::cout << "\nThe event with ident = " << client.connected_fd << " and filter EVFILT_WRITE has been added to kqueue\n" << std::endl;
 }
