@@ -115,7 +115,7 @@ void Cluster::run()
 
 		for (int n = 0; n < nfds; ++n) {
 			Event * costumeEvent = (Event*)events[n].data.ptr;
-			// Event * costumeEvent;
+			DefaultServer *srv = costumeEvent->ptr;
 
 			if (events[n].events == EPOLLERR)
 			{
@@ -133,29 +133,29 @@ void Cluster::run()
 				std::cout << "the event has filter = EPOLLOUT\n" << std::endl;
 
 				// response can be sent to connected_fd
-				costumeEvent->getDS()->sendResponse(costumeEvent->getFd(), 0);
+				srv->sendResponse(costumeEvent->fd, 0);
 			}
 			else if (events[n].events == EPOLLIN)
 			{
 				//debug
 				std::cout << "the event has filter = EPOLLIN\n" << std::endl;
 				
-				if (costumeEvent->getFd() == costumeEvent->getDS()->getListeningFd())
+				if (costumeEvent->fd == srv->getListeningFd())
 				{
 					//debug
 					std::cout << "the event has fd = listening_fd\n" << std::endl;
 
 					// listening_fd ready to accept a new connection from client
-					costumeEvent->getDS()->connectToClient();
+					srv->connectToClient();
 				}
 				else
 				{
 					//debug
 					std::cout << "the event has fd = " << events[n].data.fd << " !=";
-					std::cout << " from " << costumeEvent->getDS()->getListeningFd() << std::endl;
+					std::cout << " from " << srv->getListeningFd() << std::endl;
 
 					// request can be received from connected_fd
-					costumeEvent->getDS()->receiveRequest(events[n]);
+					srv->receiveRequest(events[n]);
 				}
 			}
 		}
