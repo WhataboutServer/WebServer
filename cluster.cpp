@@ -151,7 +151,7 @@ void Cluster::run()
 				else
 				{
 					//debug
-					std::cout << "the event has fd = " << events[n].data.fd << " !=";
+					std::cout << "the event has fd = " << costumeEvent->fd << " !=";
 					std::cout << " from " << srv->getListeningFd() << std::endl;
 
 					// request can be received from connected_fd

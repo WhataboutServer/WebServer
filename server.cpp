@@ -71,6 +71,17 @@ void Server::prepareResponse(ConnectedClient &client, const Request & request)
 	// 	perror("ERROR\nServer.prepareResponse: kevent()");
 	// 	exit(EXIT_FAILURE);
 	// }
+
+	// struct epoll_event ev;
+	// ev.events = EPOLLOUT;
+	// Event *costumeEventData = new Event;
+	// costumeEventData->fd = client.connected_fd;
+	// costumeEventData->ptr = this;
+	// ev.data.ptr = costumeEventData;
+	// if (epoll_ctl(epollfd, EPOLL_CTL_ADD, client.connected_fd, &ev) == -1) {
+	// 	printf("Failed to insert socket into epoll.\n");
+	// }
+
 	struct epoll_event ev;
 	ev.events = EPOLLOUT;
 	ev.data.fd = client.connected_fd;

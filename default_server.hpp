@@ -16,9 +16,6 @@
 
 #define BUFFER_SIZE BUFSIZ
 
-
-
-
 class DefaultServer : public Server
 {
 private:

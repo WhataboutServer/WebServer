@@ -106,9 +106,11 @@ void DefaultServer::connectToClient()
 	// add new connected_fd to kqueue for READ monitoring
 	struct epoll_event ev;
 	ev.events = EPOLLIN | EPOLLET;
-	ev.data.fd = connected_fd;
-	if(epoll_ctl(epollfd, EPOLL_CTL_MOD, connected_fd, &ev)<0)
-	{
+	Event *costumeEventData = new Event;
+	costumeEventData->fd = connected_fd;
+	costumeEventData->ptr = this;
+	ev.data.ptr = costumeEventData;
+	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, connected_fd, &ev) == -1) {
 		printf("Failed to insert socket into epoll.\n");
 	}
 
@@ -124,7 +126,8 @@ void DefaultServer::receiveRequest(struct epoll_event const event)
 	std::cout << "-----------------------------------------------------------" << std::endl;
 	std::cout << "\nDefaultServer.receiveRequest():" << std::endl;
 
-	int connected_fd = event.data.fd;
+	Event * costumeEvent = (Event*)event.data.ptr;
+	int connected_fd = costumeEvent->fd;
 
 	// find client corresponding to connected_fd
 	if (clients.find(connected_fd) == clients.end())
@@ -181,6 +184,7 @@ void DefaultServer::receiveRequest(struct epoll_event const event)
 			perror("epoll_ctl: delete socket from epoll");
 			exit(EXIT_FAILURE);
 		}
+		
 		//debug
 		std::cout << "\nThe event with ident = " << client.connected_fd << " and filter EVFILT_READ has been removed from kqueue\n" << std::endl;
 		dispatchRequest(client);
